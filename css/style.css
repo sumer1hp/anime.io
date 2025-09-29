@@ -6,7 +6,25 @@ body {
 .video-section video {
   display: block;
 }
+/* Стили для уведомлений */
+.alert.position-fixed {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: none;
+}
 
+/* Индикатор режима */
+.guest-mode .video-section::before {
+  content: "Режим гостя";
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 193, 7, 0.9);
+  color: #000;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 100;
+}
 .subtitle-overlay {
   position: absolute;
   left: 0;
