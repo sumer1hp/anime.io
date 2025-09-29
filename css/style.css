@@ -2,7 +2,32 @@ body {
   background: #f8f9fa;
   font-family: 'Segoe UI', system-ui, sans-serif;
 }
+/* Стили для модального окна подключения */
+#connectModal .modal-content {
+  border-radius: 12px;
+}
 
+#connectModal .modal-header {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+#connectModal .modal-body {
+  padding-top: 0;
+}
+
+/* Стили для информации о комнате */
+#roomInfo .btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Временные уведомления */
+.temp-alert {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: none;
+  border-radius: 8px;
+}
 .video-section video {
   display: block;
 }
