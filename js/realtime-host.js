@@ -1,12 +1,15 @@
 // realtime-host.js
-let peer, conn;
+let peer;
+let connections = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   // Создаем комнату с уникальным ID
-  const roomId = Math.random().toString(36).substring(2, 10) + Date.now().toString(36).slice(-4);
+  const roomId = generateRoomId();
   const shareUrl = new URL(window.location);
   shareUrl.searchParams.set('room', roomId);
   window.history.replaceState({}, '', shareUrl);
+
+  console.log('Creating host room:', roomId);
 
   peer = new Peer(roomId, {
     host: '0.peerjs.com',
@@ -15,87 +18,127 @@ document.addEventListener('DOMContentLoaded', () => {
     secure: true
   });
 
-  peer.on('open', () => {
-    console.log('Host peer created with ID:', roomId);
+  peer.on('open', (id) => {
+    console.log('Host peer opened with ID:', id);
     
     // Показываем ссылку для совместного доступа
-    const shareLink = document.getElementById('shareLink');
-    const shareSection = document.getElementById('shareSection');
-    
-    if (shareLink && shareSection) {
-      shareLink.value = shareUrl.toString();
-      shareSection.classList.remove('d-none');
-    }
+    showShareLink(shareUrl.toString());
   });
 
   // Ждем подключения гостей
-  peer.on('connection', (connection) => {
-    console.log('Guest connected:', connection.peer);
-    setupConnection(connection);
+  peer.on('connection', (conn) => {
+    console.log('Guest connected:', conn.peer);
+    setupGuestConnection(conn);
   });
 
   peer.on('error', (err) => {
     console.error('Host PeerJS error:', err);
   });
+
+  // Слушаем изменения субтитров и рассылаем гостям
+  window.addEventListener('subtitlesChanged', () => {
+    broadcastToGuests();
+  });
+
+  // Также рассылаем при загрузке новых субтитров
+  window.addEventListener('subtitlesLoaded', () => {
+    broadcastToGuests();
+  });
 });
 
-function setupConnection(connection) {
-  conn = connection;
-  
+function setupGuestConnection(conn) {
   conn.on('open', () => {
-    console.log('Connection with guest established');
+    console.log('Connection established with guest:', conn.peer);
+    connections.push(conn);
     
-    // Сразу отправляем текущее состояние субтитров гостю
-    if (typeof window.getSubtitleItems === 'function') {
-      const items = window.getSubtitleItems();
-      conn.send({ 
-        type: 'subtitle_update', 
-        items: items,
-        isInitial: true
-      });
-    }
+    // Сразу отправляем текущие субтитры новому гостю
+    sendSubtitlesToGuest(conn);
   });
 
   conn.on('data', (data) => {
-    switch (data.type) {
-      case 'request_state':
-        // Отправляем текущее состояние по запросу гостя
-        if (typeof window.getSubtitleItems === 'function') {
-          conn.send({ 
-            type: 'subtitle_update', 
-            items: window.getSubtitleItems(),
-            isInitial: true
-          });
-        }
-        break;
-      case 'subtitle_update':
-        // Получаем обновления от гостя и применяем их
-        if (window.getSubtitleItems && typeof window.getSubtitleItems === 'function') {
-          const currentItems = window.getSubtitleItems();
-          if (JSON.stringify(currentItems) !== JSON.stringify(data.items)) {
-            window.dispatchEvent(new CustomEvent('subtitlesLoaded', { 
-              detail: { items: data.items } 
-            }));
-          }
-        }
-        break;
+    console.log('Received data from guest:', data);
+    
+    if (data.type === 'request_subtitles') {
+      sendSubtitlesToGuest(conn);
     }
+  });
+
+  conn.on('close', () => {
+    console.log('Guest disconnected:', conn.peer);
+    connections = connections.filter(c => c !== conn);
   });
 
   conn.on('error', (err) => {
-    console.error('Host connection error:', err);
+    console.error('Guest connection error:', err);
+    connections = connections.filter(c => c !== conn);
   });
+}
 
-  // Отправляем обновления при изменении субтитров
-  window.addEventListener('subtitlesChanged', () => {
-    if (typeof window.getSubtitleItems === 'function' && conn?.open) {
-      clearTimeout(window.hostDebounce);
-      window.hostDebounce = setTimeout(() => {
-        conn.send({ 
-          type: 'subtitle_update', 
-          items: window.getSubtitleItems() 
+function sendSubtitlesToGuest(conn) {
+  if (typeof window.getSubtitleItems === 'function') {
+    const items = window.getSubtitleItems();
+    console.log('Sending subtitles to guest:', items.length, 'items');
+    conn.send({
+      type: 'subtitles_data',
+      items: items,
+      timestamp: Date.now()
+    });
+  }
+}
+
+function broadcastToGuests() {
+  if (connections.length === 0) return;
+  
+  if (typeof window.getSubtitleItems === 'function') {
+    const items = window.getSubtitleItems();
+    console.log('Broadcasting to', connections.length, 'guests:', items.length, 'items');
+    
+    connections.forEach(conn => {
+      if (conn.open) {
+        conn.send({
+          type: 'subtitles_data',
+          items: items,
+          timestamp: Date.now()
         });
-      }, 300);
-    }
-  });
+      }
+    });
+  }
+}
+
+function showShareLink(url) {
+  const shareLink = document.getElementById('shareLink');
+  const shareSection = document.getElementById('shareSection');
+  
+  if (shareLink && shareSection) {
+    shareLink.value = url;
+    shareSection.classList.remove('d-none');
+    
+    // Добавляем кнопку копирования
+    shareSection.innerHTML = `
+      <div class="alert alert-info mb-0">
+        <strong>Ссылка для совместного редактирования:</strong><br>
+        <div class="input-group input-group-sm mt-2">
+          <input type="text" id="shareLink" class="form-control" value="${url}" readonly>
+          <button class="btn btn-outline-secondary" type="button" id="copyLinkBtn">
+            <i class="bi bi-clipboard"></i>
+          </button>
+        </div>
+        <small class="text-muted">Отправьте эту ссылку другим участникам</small>
+      </div>
+    `;
+    
+    document.getElementById('copyLinkBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('copyLinkBtn');
+        btn.innerHTML = '<i class="bi bi-check"></i>';
+        setTimeout(() => {
+          btn.innerHTML = '<i class="bi bi-clipboard"></i>';
+        }, 2000);
+      });
+    });
+  }
+}
+
+function generateRoomId() {
+  return Math.random().toString(36).substring(2, 10) + Date.now().toString(36).slice(-4);
 }
