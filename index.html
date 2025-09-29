@@ -10,6 +10,34 @@
 </head>
 <body>
 
+<!-- Модальное окно подключения к комнате -->
+<div class="modal fade" id="connectModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Подключение к комнате</h5>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Номер комнаты</label>
+          <input type="text" id="roomNumberInput" class="form-control" placeholder="Введите номер" maxlength="15">
+        </div>
+        <div class="d-grid gap-2">
+          <button id="createRoomBtn" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать комнату
+          </button>
+          <button id="joinRoomBtn" class="btn btn-success">
+            <i class="bi bi-arrow-right-circle"></i> Присоединиться
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <small class="text-muted">Или <a href="#" id="closeModalBtn">продолжить без подключения</a></small>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="container-fluid px-3 py-3" style="max-width: 1600px;">
   <!-- Загрузка видео -->
   <div class="mb-3">
@@ -21,6 +49,26 @@
   <div id="playerContainer" class="d-none rounded-3 overflow-hidden shadow-sm bg-black position-relative mb-4">
     <video id="videoPlayer" controls width="100%"></video>
     <div id="subtitleOverlay" class="subtitle-overlay"></div>
+  </div>
+
+  <!-- Информация о комнате -->
+  <div id="roomInfo" class="alert alert-info d-none mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <strong id="roomStatus"></strong>
+        <div class="mt-1">
+          <small>Номер комнаты: <code id="currentRoomId"></code></small>
+        </div>
+      </div>
+      <div>
+        <button id="copyRoomIdBtn" class="btn btn-sm btn-outline-secondary me-2">
+          <i class="bi bi-clipboard"></i> Копировать номер
+        </button>
+        <button id="disconnectBtn" class="btn btn-sm btn-outline-danger">
+          <i class="bi bi-x-circle"></i> Отключиться
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Позиция субтитров -->
@@ -59,17 +107,14 @@
 
   <!-- Кнопки -->
   <div class="d-flex gap-2 mt-3">
+    <button id="connectToRoomBtn" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-people"></i> Подключиться к комнате
+    </button>
     <button id="addSubtitleRow" class="btn btn-primary btn-sm">
       <i class="bi bi-plus-lg"></i> Добавить строку
     </button>
     <button id="exportSrt" class="btn btn-success btn-sm flex-fill">Сохранить .srt</button>
     <button id="exportAss" class="btn btn-info btn-sm flex-fill">Сохранить .ass</button>
-  </div>
-
-  <!-- Совместная ссылка -->
-  <div id="shareSection" class="alert alert-info mt-3 d-none">
-    Ссылка для совместного редактирования:<br>
-    <input type="text" id="shareLink" class="form-control form-control-sm" readonly>
   </div>
 </div>
 
@@ -82,28 +127,7 @@
 <script src="js/subtitle-loader.js"></script>
 <script src="js/editor.js"></script>
 <script src="js/export.js"></script>
+<script src="js/room-manager.js"></script>
 
-<!-- Динамическая загрузка realtime скриптов -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(window.location.search);
-  const roomId = params.get('room');
-  
-  // Небольшая задержка чтобы editor.js успел загрузиться
-  setTimeout(() => {
-    if (roomId) {
-      console.log('Loading guest realtime script for room:', roomId);
-      const script = document.createElement('script');
-      script.src = 'js/realtime-guest.js';
-      document.body.appendChild(script);
-    } else {
-      console.log('Loading host realtime script');
-      const script = document.createElement('script');
-      script.src = 'js/realtime-host.js';
-      document.body.appendChild(script);
-    }
-  }, 100);
-});
-</script>
 </body>
 </html>
