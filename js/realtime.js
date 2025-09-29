@@ -1,88 +1,101 @@
-// realtime.js — без синтаксических ошибок, без 404
-
-let peer;
-let activeConnection = null;
-
-const params = new URLSearchParams(window.location.hash.slice(1));
-const roomId = params.get('room');
-const role = params.get('role');
+// realtime.js
+let peer, conn;
+const params = new URLSearchParams(window.location.search);
+let roomId = params.get('room');
 
 if (!roomId) {
-  // Создаём комнату
-  const newRoomId = Math.random().toString(36).substring(2, 10);
-  window.location.hash = `room=${newRoomId}&role=host`;
-  // Перезагружаемся после изменения hash
-  window.addEventListener('hashchange', () => {
-    if (!peer) location.reload();
-  });
-} else {
-  if (role === 'host') {
-    startHost(roomId);
-  } else {
-    startGuest(roomId);
-  }
+  roomId = Math.random().toString(36).substring(2, 10) + Date.now().toString(36).slice(-4);
+  const newUrl = new URL(window.location);
+  newUrl.searchParams.set('room', roomId);
+  window.history.replaceState({}, '', newUrl);
 }
 
-function startHost(roomId) {
-  peer = new Peer(roomId, {
+document.addEventListener('DOMContentLoaded', () => {
+  peer = new Peer(roomId + '-' + Date.now(), {
     host: '0.peerjs.com',
     port: 443,
     path: '/',
     secure: true
   });
 
+  peer.on('open', () => {
+    console.log('Peer connected with ID:', peer.id);
+    
+    // Показываем ссылку для совместного доступа
+    const shareLink = document.getElementById('shareLink');
+    const shareSection = document.getElementById('shareSection');
+    
+    if (shareLink && shareSection) {
+      const shareUrl = new URL(window.location);
+      shareUrl.searchParams.set('room', roomId);
+      shareLink.value = shareUrl.toString();
+      shareSection.classList.remove('d-none');
+    }
+
+    // Если мы не создатель комнаты, подключаемся к создателю
+    if (!window.location.search.includes('room=')) {
+      // Мы создатель комнаты - ждем подключений
+      peer.on('connection', (connection) => {
+        setupConnection(connection);
+      });
+    } else {
+      // Мы присоединяемся - подключаемся к создателю
+      setTimeout(() => {
+        const connection = peer.connect(roomId);
+        setupConnection(connection);
+      }, 1000);
+    }
+  });
+
   peer.on('error', (err) => {
-    if (err.type === 'unavailable-id') {
-      alert('Комната занята. Перезагрузка...');
-      window.location.hash = '';
-      location.reload();
+    console.error('PeerJS error:', err);
+  });
+});
+
+function setupConnection(connection) {
+  conn = connection;
+  
+  conn.on('open', () => {
+    console.log('Connected to peer');
+    
+    // Запрашиваем текущее состояние у ведущего
+    if (window.location.search.includes('room=')) {
+      conn.send({ type: 'request_state' });
     }
   });
 
-  peer.on('connection', (conn) => {
-    if (activeConnection) conn.close();
-    else setupConnection(conn);
-    setTimeout(() => sendCurrentSubtitles(conn), 1000);
-  });
-
-  document.getElementById('shareLink').value = 
-    `${location.origin}${location.pathname}#room=${roomId}&role=guest`;
-  document.getElementById('shareSection').classList.remove('d-none');
-}
-
-function startGuest(roomId) {
-  // Ждём немного, чтобы хост успел создать комнату
-  setTimeout(() => {
-    peer = new Peer(); // гость без ID
-    const conn = peer.connect(roomId);
-    conn.on('open', () => {
-      if (!activeConnection) setupConnection(conn);
-    });
-    conn.on('error', (err) => {
-      console.error('Guest connection error:', err);
-    });
-  }, 2000);
-}
-
-function setupConnection(conn) {
-  activeConnection = conn;
   conn.on('data', (data) => {
-    if (data.type === 'subtitle_update' && Array.isArray(data.items)) {
-      window.dispatchEvent(new CustomEvent('subtitlesLoaded', { detail: { items: data.items } }));
+    switch (data.type) {
+      case 'subtitle_update':
+        if (window.getSubtitleItems && typeof window.getSubtitleItems === 'function') {
+          const currentItems = window.getSubtitleItems();
+          // Предотвращаем петлю обновлений
+          if (JSON.stringify(currentItems) !== JSON.stringify(data.items)) {
+            window.dispatchEvent(new CustomEvent('subtitlesLoaded', { detail: { items: data.items } }));
+          }
+        }
+        break;
+      case 'request_state':
+        // Отправляем текущее состояние по запросу
+        if (typeof window.getSubtitleItems === 'function' && !window.location.search.includes('room=')) {
+          conn.send({ type: 'subtitle_update', items: window.getSubtitleItems() });
+        }
+        break;
     }
   });
 
+  conn.on('error', (err) => {
+    console.error('Connection error:', err);
+  });
+
+  // Отправляем обновления при изменении субтитров
   window.addEventListener('subtitlesChanged', () => {
-    const items = typeof window.getSubtitleItems === 'function' ? window.getSubtitleItems() : [];
-    if (activeConnection?.open) {
-      activeConnection.send({ type: 'subtitle_update', items });
+    if (typeof window.getSubtitleItems === 'function' && conn?.open) {
+      // Добавляем небольшую задержку чтобы избежать частых отправок
+      clearTimeout(window.subtitleDebounce);
+      window.subtitleDebounce = setTimeout(() => {
+        conn.send({ type: 'subtitle_update', items: window.getSubtitleItems() });
+      }, 300);
     }
   });
-}
-
-function sendCurrentSubtitles(conn) {
-  const items = typeof window.getSubtitleItems === 'function' ? window.getSubtitleItems() : [];
-  if (items.length > 0) {
-    conn.send({ type: 'subtitle_update', items });
-  }
 }
