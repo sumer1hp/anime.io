@@ -1,26 +1,36 @@
-// realtime.js — 100% синтаксически корректный
+// realtime.js — полностью безопасная версия
 
 let peer;
 let activeConnection = null;
 
-(function () {
-  const params = new URLSearchParams(window.location.hash.slice(1));
-  const roomId = params.get('room');
-  const role = params.get('role');
+// Получаем параметры из URL
+const params = new URLSearchParams(window.location.hash.slice(1));
+const roomId = params.get('room');
+const role = params.get('role');
+
+// Флаг, инициализированы ли мы
+let initialized = false;
+
+if (!initialized) {
+  initialized = true;
 
   if (!roomId) {
     // Создаём комнату как хост
     const newRoomId = Math.random().toString(36).substring(2, 10);
     window.location.hash = `room=${newRoomId}&role=host`;
-    // НЕТ return — просто завершаем
+    // Перезагрузка произойдёт автоматически через hashchange
+    window.addEventListener('hashchange', () => {
+      location.reload();
+    });
   } else {
+    // Запускаем нужную роль
     if (role === 'host') {
       initAsHost(roomId);
     } else {
       initAsGuest(roomId);
     }
   }
-})();
+}
 
 // === ХОСТ ===
 function initAsHost(roomId) {
@@ -34,7 +44,7 @@ function initAsHost(roomId) {
   peer.on('error', (err) => {
     console.error('Host error:', err);
     if (err.type === 'unavailable-id') {
-      alert('Комната занята. Перезагрузка...');
+      alert('Комната занята. Создаю новую...');
       window.location.hash = '';
       location.reload();
     }
@@ -56,41 +66,21 @@ function initAsHost(roomId) {
 
 // === ГОСТЬ ===
 async function initAsGuest(roomId) {
-  const maxAttempts = 15;
-  let attempts = 0;
-  let hostReady = false;
+  // Просто подключаемся без ожидания (публичный сервер не отдаёт token)
+  setTimeout(() => {
+    peer = new Peer();
+    peer.on('error', (err) => {
+      console.error('Guest error:', err);
+    });
 
-  while (attempts < maxAttempts && !hostReady) {
-    try {
-      const res = await fetch(`https://0.peerjs.com/peerjs/id/${roomId}/token`, { method: 'HEAD' });
-      if (res.status === 200 || res.status === 401) {
-        hostReady = true;
-        break;
-      }
-    } catch (e) {
-      // Игнорируем
-    }
-    attempts++;
-    await new Promise(r => setTimeout(r, 600));
-  }
-
-  if (!hostReady) {
-    alert('Хост не в сети.');
-    return;
-  }
-
-  peer = new Peer();
-  peer.on('error', (err) => {
-    console.error('Guest error:', err);
-  });
-
-  const conn = peer.connect(roomId);
-  conn.on('open', () => {
-    if (!activeConnection) setupConnection(conn);
-  });
-  conn.on('error', (err) => {
-    console.error('Connection error:', err);
-  });
+    const conn = peer.connect(roomId);
+    conn.on('open', () => {
+      if (!activeConnection) setupConnection(conn);
+    });
+    conn.on('error', (err) => {
+      console.error('Connection error:', err);
+    });
+  }, 1500);
 }
 
 // === Общие функции ===
