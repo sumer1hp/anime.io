@@ -89,19 +89,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
   const roomId = params.get('room');
   
-  if (roomId) {
-    // Мы гость - загружаем guest скрипт
-    const script = document.createElement('script');
-    script.src = 'js/realtime-guest.js';
-    document.body.appendChild(script);
-    console.log('Loading guest realtime script');
-  } else {
-    // Мы ведущий - загружаем host скрипт
-    const script = document.createElement('script');
-    script.src = 'js/realtime-host.js';
-    document.body.appendChild(script);
-    console.log('Loading host realtime script');
-  }
+  // Небольшая задержка чтобы editor.js успел загрузиться
+  setTimeout(() => {
+    if (roomId) {
+      console.log('Loading guest realtime script for room:', roomId);
+      const script = document.createElement('script');
+      script.src = 'js/realtime-guest.js';
+      document.body.appendChild(script);
+    } else {
+      console.log('Loading host realtime script');
+      const script = document.createElement('script');
+      script.src = 'js/realtime-host.js';
+      document.body.appendChild(script);
+    }
+  }, 100);
 });
 </script>
 </body>
