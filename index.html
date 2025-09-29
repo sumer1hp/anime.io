@@ -73,7 +73,8 @@
   </div>
 </div>
 
-<!-- Скрипты -->
+
+  <!-- Скрипты -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 <script src="js/main.js"></script>
@@ -81,8 +82,29 @@
 <script src="js/player.js"></script>
 <script src="js/subtitle-loader.js"></script>
 <script src="js/editor.js"></script>
-<script src="js/realtime.js"></script>
-<script src="js/export.js"></script>
 
+<!-- Динамическая загрузка realtime скриптов -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const roomId = params.get('room');
+  
+  if (roomId) {
+    // Мы гость - загружаем guest скрипт
+    const script = document.createElement('script');
+    script.src = 'js/realtime-guest.js';
+    document.body.appendChild(script);
+    console.log('Loading guest realtime script');
+  } else {
+    // Мы ведущий - загружаем host скрипт
+    const script = document.createElement('script');
+    script.src = 'js/realtime-host.js';
+    document.body.appendChild(script);
+    console.log('Loading host realtime script');
+  }
+});
+</script>
+
+<script src="js/export.js"></script>
 </body>
 </html>
