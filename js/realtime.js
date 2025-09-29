@@ -1,26 +1,26 @@
-// realtime.js — исправленная и стабильная версия
+// realtime.js — 100% синтаксически корректный
 
 let peer;
 let activeConnection = null;
 
-// Получаем параметры из URL
-const params = new URLSearchParams(window.location.hash.slice(1));
-const roomId = params.get('room');
-const role = params.get('role');
+(function () {
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const roomId = params.get('room');
+  const role = params.get('role');
 
-// Если комнаты нет — создаём как хост
-if (!roomId) {
-  const newRoomId = Math.random().toString(36).substring(2, 10);
-  window.location.hash = `room=${newRoomId}&role=host`;
-  // Не используем return — просто завершаем инициализацию
-} else {
-  // Запускаем нужную роль
-  if (role === 'host') {
-    initAsHost(roomId);
+  if (!roomId) {
+    // Создаём комнату как хост
+    const newRoomId = Math.random().toString(36).substring(2, 10);
+    window.location.hash = `room=${newRoomId}&role=host`;
+    // НЕТ return — просто завершаем
   } else {
-    initAsGuest(roomId);
+    if (role === 'host') {
+      initAsHost(roomId);
+    } else {
+      initAsGuest(roomId);
+    }
   }
-}
+})();
 
 // === ХОСТ ===
 function initAsHost(roomId) {
@@ -49,7 +49,6 @@ function initAsHost(roomId) {
     setTimeout(() => sendCurrentSubtitles(conn), 1000);
   });
 
-  // Показываем ссылку для гостей
   const guestLink = `${location.origin}${location.pathname}#room=${roomId}&role=guest`;
   document.getElementById('shareLink').value = guestLink;
   document.getElementById('shareSection').classList.remove('d-none');
@@ -57,7 +56,6 @@ function initAsHost(roomId) {
 
 // === ГОСТЬ ===
 async function initAsGuest(roomId) {
-  // Ждём, пока хост зарегистрируется
   const maxAttempts = 15;
   let attempts = 0;
   let hostReady = false;
@@ -77,12 +75,11 @@ async function initAsGuest(roomId) {
   }
 
   if (!hostReady) {
-    alert('Хост не в сети. Попросите его обновить страницу.');
+    alert('Хост не в сети.');
     return;
   }
 
-  // Подключаемся как гость
-  peer = new Peer(); // без ID!
+  peer = new Peer();
   peer.on('error', (err) => {
     console.error('Guest error:', err);
   });
