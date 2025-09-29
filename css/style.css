@@ -1,0 +1,99 @@
+body {
+  background: #f8f9fa;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.video-section video {
+  display: block;
+}
+
+.subtitle-overlay {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 28px;
+  color: white;
+  text-shadow: 2px 2px 6px #000;
+  pointer-events: none;
+  padding: 0 20px;
+  box-sizing: border-box;
+  line-height: 1.4;
+  bottom: 50px;
+}
+
+.subtitle-overlay.pos-top {
+  bottom: auto;
+  top: 50px;
+}
+
+.subtitle-overlay.pos-middle {
+  bottom: auto;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.table-wrapper {
+  background: white;
+}
+
+#subtitleTable th {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+#subtitleTable td {
+  vertical-align: middle;
+  padding: 0.4rem 0.6rem;
+}
+
+.time-input, .text-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.text-input {
+  min-height: 2.2rem;
+  line-height: 1.3;
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#subtitleTable tr.table-warning td {
+  background-color: #fff3cd !important;
+}
+
+.insert-hint {
+  height: 8px;
+  background: transparent;
+  position: relative;
+  cursor: pointer;
+}
+
+.insert-hint:hover::after {
+  content: "+";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #0d6efd;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
