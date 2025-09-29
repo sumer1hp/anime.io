@@ -21,6 +21,19 @@ body {
   line-height: 1.4;
   bottom: 50px;
 }
+.sticky-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  max-height: 40vh;
+}
+
+.sticky-video video {
+  max-height: 40vh;
+  object-fit: contain;
+}
 
 .subtitle-overlay.pos-top {
   bottom: auto;
