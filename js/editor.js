@@ -1,13 +1,6 @@
+// editor.js
 let subtitleItems = [];
 
-// Проверяем, что DOM загружен
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initEditor);
-} else {
-  initEditor();
-}
-
-function initEditor() {
 document.addEventListener('DOMContentLoaded', () => {
   const video = document.getElementById('videoPlayer');
   const addBtn = document.getElementById('addSubtitleRow');
