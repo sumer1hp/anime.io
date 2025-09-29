@@ -1,23 +1,25 @@
-// realtime.js — с ожиданием готовности хоста
+// realtime.js — исправленная и стабильная версия
 
 let peer;
 let activeConnection = null;
 
+// Получаем параметры из URL
 const params = new URLSearchParams(window.location.hash.slice(1));
 const roomId = params.get('room');
 const role = params.get('role');
 
+// Если комнаты нет — создаём как хост
 if (!roomId) {
-  // Создаём комнату
   const newRoomId = Math.random().toString(36).substring(2, 10);
   window.location.hash = `room=${newRoomId}&role=host`;
-  return;
-}
-
-if (role === 'host') {
-  initAsHost(roomId);
+  // Не используем return — просто завершаем инициализацию
 } else {
-  initAsGuest(roomId);
+  // Запускаем нужную роль
+  if (role === 'host') {
+    initAsHost(roomId);
+  } else {
+    initAsGuest(roomId);
+  }
 }
 
 // === ХОСТ ===
@@ -32,18 +34,22 @@ function initAsHost(roomId) {
   peer.on('error', (err) => {
     console.error('Host error:', err);
     if (err.type === 'unavailable-id') {
-      alert('ID занят. Перезагрузка...');
+      alert('Комната занята. Перезагрузка...');
       window.location.hash = '';
+      location.reload();
     }
   });
 
   peer.on('connection', (conn) => {
-    if (activeConnection) conn.close();
-    else setupConnection(conn);
+    if (activeConnection) {
+      conn.close();
+      return;
+    }
+    setupConnection(conn);
     setTimeout(() => sendCurrentSubtitles(conn), 1000);
   });
 
-  // Показываем ссылку
+  // Показываем ссылку для гостей
   const guestLink = `${location.origin}${location.pathname}#room=${roomId}&role=guest`;
   document.getElementById('shareLink').value = guestLink;
   document.getElementById('shareSection').classList.remove('d-none');
@@ -51,38 +57,32 @@ function initAsHost(roomId) {
 
 // === ГОСТЬ ===
 async function initAsGuest(roomId) {
-  // Ждём, пока хост появится (опрашиваем сервер PeerJS)
-  const maxAttempts = 20;
+  // Ждём, пока хост зарегистрируется
+  const maxAttempts = 15;
   let attempts = 0;
   let hostReady = false;
 
   while (attempts < maxAttempts && !hostReady) {
     try {
-      const res = await fetch(`https://0.peerjs.com/peerjs/id/${roomId}/token`);
-      if (res.ok) {
+      const res = await fetch(`https://0.peerjs.com/peerjs/id/${roomId}/token`, { method: 'HEAD' });
+      if (res.status === 200 || res.status === 401) {
         hostReady = true;
         break;
       }
     } catch (e) {
-      // Игнорируем ошибки сети
+      // Игнорируем
     }
     attempts++;
-    await new Promise(r => setTimeout(r, 500)); // ждём 0.5 сек
+    await new Promise(r => setTimeout(r, 600));
   }
 
   if (!hostReady) {
-    alert('Хост не отвечает. Убедитесь, что он онлайн.');
+    alert('Хост не в сети. Попросите его обновить страницу.');
     return;
   }
 
-  // Подключаемся
-  peer = new Peer(undefined, {
-    host: '0.peerjs.com',
-    port: 443,
-    path: '/',
-    secure: true
-  });
-
+  // Подключаемся как гость
+  peer = new Peer(); // без ID!
   peer.on('error', (err) => {
     console.error('Guest error:', err);
   });
