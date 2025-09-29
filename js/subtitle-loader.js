@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const content = event.target.result;
       const items = parseSrt(content);
       window.dispatchEvent(new CustomEvent('subtitlesLoaded', { detail: { items } }));
+       window.dispatchEvent(new CustomEvent('subtitlesChanged'));
     };
     reader.readAsText(file, 'utf-8');
   });
