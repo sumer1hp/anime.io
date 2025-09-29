@@ -1,22 +1,23 @@
-// /js/realtime.js — правильная реализация хост/клиент
+// realtime.js — стабильная версия для GitHub Pages
 
 let peer;
-let conn;
-let isHost = false;
-const ROOM_KEY = 'subtitle_room_host';
+let activeConnection = null;
+const ROOM_KEY = 'peer_host_room';
 
-// Получаем room ID из URL
+// Получаем room из URL
 const params = new URLSearchParams(window.location.hash.slice(1));
 let roomId = params.get('room');
 
+let isHost = false;
+
 if (!roomId) {
-  // Я — хост: создаю комнату
+  // Я — хост
   roomId = Math.random().toString(36).substring(2, 10);
   window.history.replaceState(null, null, `#room=${roomId}`);
   isHost = true;
-  sessionStorage.setItem(ROOM_KEY, roomId); // помечаем себя как хоста
+  sessionStorage.setItem(ROOM_KEY, roomId);
 } else {
-  // Я — клиент: подключаюсь к комнате
+  // Я — клиент
   isHost = false;
 }
 
@@ -31,63 +32,68 @@ peer = new Peer(roomId, {
 peer.on('error', (err) => {
   console.error('PeerJS error:', err);
   if (err.type === 'unavailable-id' && isHost) {
-    // Очень редко: ID занят — генерируем новый
+    // Редкий случай: ID занят — перезагрузка
+    alert('Комната занята. Перезагрузка...');
+    sessionStorage.removeItem(ROOM_KEY);
     location.hash = '';
     location.reload();
   }
 });
 
-// === ХОСТ: ждём подключений ===
+// === ХОСТ: только слушает подключения ===
 if (isHost) {
-  peer.on('connection', (connection) => {
-    setupConnection(connection);
-    // Отправляем текущие субтитры
-    setTimeout(() => sendCurrentSubtitles(connection), 1000);
+  peer.on('connection', (conn) => {
+    if (activeConnection) {
+      conn.close(); // разрешаем только одно соединение
+      return;
+    }
+    setupConnection(conn);
+    setTimeout(() => sendCurrentSubtitles(conn), 800);
   });
-} 
-// === КЛИЕНТ: подключаемся к хосту ===
+
+  // Показываем ссылку
+  document.getElementById('shareLink').value = `${location.origin}${location.pathname}#room=${roomId}`;
+  document.getElementById('shareSection').classList.remove('d-none');
+}
+// === КЛИЕНТ: только подключается ===
 else {
+  // Ждём, пока хост инициализирует Peer
   setTimeout(() => {
-    const connection = peer.connect(roomId);
-    connection.on('open', () => {
-      setupConnection(connection);
+    const conn = peer.connect(roomId, { reliable: true });
+    conn.on('open', () => {
+      if (!activeConnection) {
+        setupConnection(conn);
+      }
     });
-    connection.on('error', (err) => {
+    conn.on('error', (err) => {
       console.error('Connection error:', err);
     });
-  }, 1000);
+  }, 1200);
 }
 
-function setupConnection(connection) {
-  conn = connection;
+function setupConnection(conn) {
+  activeConnection = conn;
 
-  // Получение данных
   conn.on('data', (data) => {
-    if (data.type === 'subtitle_update' && data.items) {
+    if (data.type === 'subtitle_update' && Array.isArray(data.items)) {
       window.dispatchEvent(new CustomEvent('subtitlesLoaded', { detail: { items: data.items } }));
     }
   });
 
-  // Отправка при изменении
+  // Отправка изменений
   const sendUpdate = () => {
     const items = typeof window.getSubtitleItems === 'function' ? window.getSubtitleItems() : [];
-    if (conn?.open) {
-      conn.send({ type: 'subtitle_update', items });
+    if (activeConnection?.open) {
+      activeConnection.send({ type: 'subtitle_update', items });
     }
   };
 
   window.addEventListener('subtitlesChanged', sendUpdate);
 }
 
-function sendCurrentSubtitles(connection) {
+function sendCurrentSubtitles(conn) {
   const items = typeof window.getSubtitleItems === 'function' ? window.getSubtitleItems() : [];
   if (items.length > 0) {
-    connection.send({ type: 'subtitle_update', items });
+    conn.send({ type: 'subtitle_update', items });
   }
-}
-
-// Показываем ссылку (только у хоста)
-if (isHost) {
-  document.getElementById('shareLink').value = `${window.location.origin}${window.location.pathname}#room=${roomId}`;
-  document.getElementById('shareSection').classList.remove('d-none');
 }
