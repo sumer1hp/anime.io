@@ -1,5 +1,13 @@
 // editor.js
 let subtitleItems = [];
+// Добавляем отладочную информацию
+console.log('Editor.js loaded');
+
+window.addEventListener('subtitlesLoaded', (e) => {
+  console.log('Subtitles loaded event received:', e.detail.items?.length || 0, 'items');
+  subtitleItems = e.detail.items;
+  renderTable();
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   const video = document.getElementById('videoPlayer');
