@@ -1,39 +1,29 @@
-// realtime.js — полностью безопасная версия
+// realtime.js — без синтаксических ошибок, без 404
 
 let peer;
 let activeConnection = null;
 
-// Получаем параметры из URL
 const params = new URLSearchParams(window.location.hash.slice(1));
 const roomId = params.get('room');
 const role = params.get('role');
 
-// Флаг, инициализированы ли мы
-let initialized = false;
-
-if (!initialized) {
-  initialized = true;
-
-  if (!roomId) {
-    // Создаём комнату как хост
-    const newRoomId = Math.random().toString(36).substring(2, 10);
-    window.location.hash = `room=${newRoomId}&role=host`;
-    // Перезагрузка произойдёт автоматически через hashchange
-    window.addEventListener('hashchange', () => {
-      location.reload();
-    });
+if (!roomId) {
+  // Создаём комнату
+  const newRoomId = Math.random().toString(36).substring(2, 10);
+  window.location.hash = `room=${newRoomId}&role=host`;
+  // Перезагружаемся после изменения hash
+  window.addEventListener('hashchange', () => {
+    if (!peer) location.reload();
+  });
+} else {
+  if (role === 'host') {
+    startHost(roomId);
   } else {
-    // Запускаем нужную роль
-    if (role === 'host') {
-      initAsHost(roomId);
-    } else {
-      initAsGuest(roomId);
-    }
+    startGuest(roomId);
   }
 }
 
-// === ХОСТ ===
-function initAsHost(roomId) {
+function startHost(roomId) {
   peer = new Peer(roomId, {
     host: '0.peerjs.com',
     port: 443,
@@ -42,48 +32,38 @@ function initAsHost(roomId) {
   });
 
   peer.on('error', (err) => {
-    console.error('Host error:', err);
     if (err.type === 'unavailable-id') {
-      alert('Комната занята. Создаю новую...');
+      alert('Комната занята. Перезагрузка...');
       window.location.hash = '';
       location.reload();
     }
   });
 
   peer.on('connection', (conn) => {
-    if (activeConnection) {
-      conn.close();
-      return;
-    }
-    setupConnection(conn);
+    if (activeConnection) conn.close();
+    else setupConnection(conn);
     setTimeout(() => sendCurrentSubtitles(conn), 1000);
   });
 
-  const guestLink = `${location.origin}${location.pathname}#room=${roomId}&role=guest`;
-  document.getElementById('shareLink').value = guestLink;
+  document.getElementById('shareLink').value = 
+    `${location.origin}${location.pathname}#room=${roomId}&role=guest`;
   document.getElementById('shareSection').classList.remove('d-none');
 }
 
-// === ГОСТЬ ===
-async function initAsGuest(roomId) {
-  // Просто подключаемся без ожидания (публичный сервер не отдаёт token)
+function startGuest(roomId) {
+  // Ждём немного, чтобы хост успел создать комнату
   setTimeout(() => {
-    peer = new Peer();
-    peer.on('error', (err) => {
-      console.error('Guest error:', err);
-    });
-
+    peer = new Peer(); // гость без ID
     const conn = peer.connect(roomId);
     conn.on('open', () => {
       if (!activeConnection) setupConnection(conn);
     });
     conn.on('error', (err) => {
-      console.error('Connection error:', err);
+      console.error('Guest connection error:', err);
     });
-  }, 1500);
+  }, 2000);
 }
 
-// === Общие функции ===
 function setupConnection(conn) {
   activeConnection = conn;
   conn.on('data', (data) => {
