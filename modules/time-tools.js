@@ -86,7 +86,11 @@ function showTimeShiftModal() {
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
         <button type="button" class="btn btn-primary" onclick="applyTimeShift()">Применить</button>
     `;
-    document.getElementById('timeShiftModal').querySelector('.modal-footer')?.remove();
+    
+    // Удаляем старый footer если есть и добавляем новый
+    const oldFooter = document.getElementById('timeShiftModal').querySelector('.modal-footer');
+    if (oldFooter) oldFooter.remove();
+    
     document.getElementById('timeShiftModal').querySelector('.modal-content').innerHTML += `<div class="modal-footer">${footer}</div>`;
     
     modal.show();
@@ -122,5 +126,9 @@ function applyTimeShift() {
     window.dispatchEvent(new CustomEvent('subtitlesLoaded', { detail: { items: newItems } }));
     
     bootstrap.Modal.getInstance(document.getElementById('timeShiftModal')).hide();
-    showNotification(`Временные метки обновлены`, 'success');
+    
+    // Используем showAlert из editor.js
+    if (window.showAlert) {
+        window.showAlert(`Временные метки обновлены`, 'success');
+    }
 }
