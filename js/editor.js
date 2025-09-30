@@ -329,6 +329,10 @@ function handleTimeChange(e) {
 function handleTextChange(e) {
   const index = parseInt(e.target.dataset.index);
   subtitleItems[index].text = e.target.value;
+  
+  // Обновляем отображение субтитров в видео
+  updateSubtitleOverlay();
+  
   window.dispatchEvent(new CustomEvent('subtitlesChanged'));
 }
 
@@ -342,7 +346,31 @@ function handleSpeakerChange(e) {
     updateSpeakersDatalist();
   }
   
+  // Обновляем отображение субтитров в видео
+  updateSubtitleOverlay();
+  
   window.dispatchEvent(new CustomEvent('subtitlesChanged'));
+}
+
+function updateSubtitleOverlay() {
+  const video = document.getElementById('videoPlayer');
+  const overlay = document.getElementById('subtitleOverlay');
+  
+  if (!video || !overlay) return;
+  
+  const currentTime = video.currentTime;
+  const current = subtitleItems.find(item => currentTime >= item.start && currentTime <= item.end);
+  
+  if (current) {
+    let displayText = current.text;
+    // Добавляем говорящего к тексту для отображения
+    if (current.speaker && current.speaker.trim()) {
+      displayText = `${current.speaker}: ${displayText}`;
+    }
+    overlay.textContent = displayText;
+  } else {
+    overlay.textContent = '';
+  }
 }
 
 function updateSpeakersDatalist() {
@@ -501,6 +529,9 @@ function updateCurrentTime() {
   if (duration && currentVideo && !isNaN(currentVideo.duration)) {
     duration.textContent = secondsToTime(currentVideo.duration).substring(0, 8);
   }
+  
+  // Обновляем отображение субтитров
+  updateSubtitleOverlay();
 }
 
 function updateDuration() {
