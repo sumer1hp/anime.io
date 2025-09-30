@@ -10,7 +10,7 @@ class LanguageManager {
                     'loadVideo': 'Загрузить видео',
                     'loadSubtitles': 'Загрузить субтитры',
                     'addSubtitle': 'Добавить субтитр',
-                    'export1': 'Экспорт srt',
+                    'export1': 'Экспорт SRT',
                      'export2': 'Экспорт ASS',
                     // Таблица
                     'number': '№',
@@ -42,7 +42,8 @@ class LanguageManager {
                     'loadVideo': 'Load Video',
                     'loadSubtitles': 'Load Subtitles',
                     'addSubtitle': 'Add Subtitle',
-                    'export': 'Export',
+                    'export1': 'Export SRT',
+                     'export2': 'Export ASS',
                     
                     // Table
                     'number': '#',
