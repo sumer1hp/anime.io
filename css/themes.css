@@ -1,0 +1,117 @@
+/* themes.css */
+[data-theme="dark"] {
+    --bs-body-bg: #1a1a1a;
+    --bs-body-color: #e9ecef;
+    --bs-border-color: #444;
+}
+
+[data-theme="dark"] .container-fluid {
+    background: #2d2d2d;
+    color: #e9ecef;
+}
+
+[data-theme="dark"] .table-wrapper {
+    background: #2d2d2d;
+    border-color: #444;
+}
+
+[data-theme="dark"] .table {
+    --bs-table-bg: #2d2d2d;
+    --bs-table-color: #e9ecef;
+    --bs-table-border-color: #444;
+}
+
+[data-theme="dark"] .table-light {
+    --bs-table-bg: #3d3d3d;
+    --bs-table-color: #e9ecef;
+}
+
+[data-theme="dark"] .form-control {
+    background-color: #2d2d2d;
+    border-color: #555;
+    color: #e9ecef;
+}
+
+[data-theme="dark"] .form-control:focus {
+    background-color: #3d3d3d;
+    border-color: #0d6efd;
+    color: #e9ecef;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+[data-theme="dark"] .alert-light {
+    background-color: #3d3d3d;
+    color: #e9ecef;
+    border-color: #555;
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+    border-color: #666;
+    color: #ccc;
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: #666;
+    border-color: #666;
+    color: #fff;
+}
+
+[data-theme="dark"] .text-muted {
+    color: #999 !important;
+}
+
+[data-theme="dark"] .modal-content {
+    background-color: #2d2d2d;
+    color: #e9ecef;
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    border-color: #444;
+}
+
+/* Стили для закладок */
+.bookmarks-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.bookmark-item {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.bookmark-item .btn {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+}
+
+/* Анимации для уведомлений */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.subtitle-notification {
+    animation: slideIn 0.3s ease;
+}
+
+/* Адаптивность для тем */
+@media (max-width: 768px) {
+    [data-theme="dark"] .container-fluid {
+        margin: 5px;
+        padding: 10px;
+    }
+    
+    .bookmarks-list {
+        justify-content: center;
+    }
+}
