@@ -81,7 +81,7 @@ class TextFormatting {
                 .replace(/\{\\u1\}/g, '<u>').replace(/\{\\u0\}/g, '</u>')
                 .replace(/\{\\s1\}/g, '<s>').replace(/\{\\s0\}/g, '</s>')
                 .replace(/\{\\c[0-9A-F&]+\}/g, '') // Удаляем цвета
-                .replace(/\{\\/?\w+\}/g, ''); // Удаляем остальные теги
+               .replace(/\{\\\\\/?\w+\}/g, ''); // Удаляем остальные теги
         } else if (fromFormat === 'srt' && toFormat === 'ass') {
             converted = converted
                 .replace(/<b>/gi, '{\\b1}').replace(/<\/b>/gi, '{\\b0}')
