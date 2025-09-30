@@ -50,7 +50,7 @@ class HistoryManager {
 
         this.currentIndex--;
         this.applyState(this.history[this.currentIndex]);
-        if (window.showAlert) window.showAlert(`Отменено: ${this.history[this.currentIndex + 1]?.description}`, 'warning');
+        if (window.showAlert) window.showAlert('Отменено: ' + this.history[this.currentIndex + 1]?.description, 'warning');
     }
 
     // Повтор (Redo)
@@ -62,7 +62,7 @@ class HistoryManager {
 
         this.currentIndex++;
         this.applyState(this.history[this.currentIndex]);
-        if (window.showAlert) window.showAlert(`Повторено: ${this.history[this.currentIndex]?.description}`, 'info');
+        if (window.showAlert) window.showAlert('Повторено: ' + this.history[this.currentIndex]?.description, 'info');
     }
 
     // Применение состояния
@@ -102,60 +102,64 @@ class HistoryManager {
 
     // Показ истории
     showHistory() {
-        const modalHTML = `
-            <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h6>История изменений</h6>
-                    <div>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="historyManager.undo()" 
-                                ${this.currentIndex <= 0 ? 'disabled' : ''}>
-                            <i class="bi bi-arrow-counterclockwise"></i> Отмена
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary ms-1" onclick="historyManager.redo()" 
-                                ${this.currentIndex >= this.history.length - 1 ? 'disabled' : ''}>
-                            <i class="bi bi-arrow-clockwise"></i> Повтор
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div style="max-height: 400px; overflow-y: auto;">
-                ${this.history.length === 0 ? `
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-clock-history display-4 d-block mb-2"></i>
-                        История изменений пуста
-                    </div>
-                ` : this.history.map((item, index) => `
-                    <div class="card mb-2 ${index === this.currentIndex ? 'border-primary' : ''}">
-                        <div class="card-body py-2">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${item.description}</strong>
-                                    <br>
-                                    <small class="text-muted">
-                                        <i class="bi bi-clock"></i> ${item.timestamp}
-                                        ${index === this.currentIndex ? ' • <strong>Текущее состояние</strong>' : ''}
-                                    </small>
-                                </div>
-                                <div>
-                                    ${index !== this.currentIndex ? `
-                                        <button class="btn btn-sm btn-outline-primary" 
-                                                onclick="historyManager.goToState(${index})">
-                                            Перейти
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-            <div class="mt-3">
-                <button class="btn btn-outline-danger btn-sm" onclick="historyManager.clearHistory()">
-                    <i class="bi bi-trash"></i> Очистить историю
-                </button>
-                <small class="text-muted ms-2">Всего записей: ${this.history.length}</small>
-            </div>
-        `;
+        let historyHTML = '';
+        
+        if (this.history.length === 0) {
+            historyHTML = 
+                '<div class="text-center text-muted py-4">' +
+                    '<i class="bi bi-clock-history display-4 d-block mb-2"></i>' +
+                    'История изменений пуста' +
+                '</div>';
+        } else {
+            historyHTML = this.history.map((item, index) => {
+                const isCurrent = index === this.currentIndex;
+                return (
+                    '<div class="card mb-2 ' + (isCurrent ? 'border-primary' : '') + '">' +
+                        '<div class="card-body py-2">' +
+                            '<div class="d-flex justify-content-between align-items-center">' +
+                                '<div>' +
+                                    '<strong>' + item.description + '</strong>' +
+                                    '<br>' +
+                                    '<small class="text-muted">' +
+                                        '<i class="bi bi-clock"></i> ' + item.timestamp +
+                                        (isCurrent ? ' • <strong>Текущее состояние</strong>' : '') +
+                                    '</small>' +
+                                '</div>' +
+                                '<div>' +
+                                    (index !== this.currentIndex ? 
+                                        '<button class="btn btn-sm btn-outline-primary" onclick="historyManager.goToState(' + index + ')">Перейти</button>' 
+                                        : '') +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>'
+                );
+            }).join('');
+        }
+
+        const modalHTML = 
+            '<div class="mb-3">' +
+                '<div class="d-flex justify-content-between align-items-center">' +
+                    '<h6>История изменений</h6>' +
+                    '<div>' +
+                        '<button class="btn btn-sm btn-outline-secondary" onclick="historyManager.undo()" ' + 
+                            (this.currentIndex <= 0 ? 'disabled' : '') + '>' +
+                            '<i class="bi bi-arrow-counterclockwise"></i> Отмена' +
+                        '</button>' +
+                        '<button class="btn btn-sm btn-outline-secondary ms-1" onclick="historyManager.redo()" ' + 
+                            (this.currentIndex >= this.history.length - 1 ? 'disabled' : '') + '>' +
+                            '<i class="bi bi-arrow-clockwise"></i> Повтор' +
+                        '</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div style="max-height: 400px; overflow-y: auto;">' + historyHTML + '</div>' +
+            '<div class="mt-3">' +
+                '<button class="btn btn-outline-danger btn-sm" onclick="historyManager.clearHistory()">' +
+                    '<i class="bi bi-trash"></i> Очистить историю' +
+                '</button>' +
+                '<small class="text-muted ms-2">Всего записей: ' + this.history.length + '</small>' +
+            '</div>';
 
         // Создаем модальное окно
         const modalId = 'historyModal';
@@ -166,17 +170,16 @@ class HistoryManager {
             modalElement.id = modalId;
             modalElement.className = 'modal fade';
             modalElement.tabIndex = -1;
-            modalElement.innerHTML = `
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">История изменений</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">${modalHTML}</div>
-                    </div>
-                </div>
-            `;
+            modalElement.innerHTML = 
+                '<div class="modal-dialog modal-lg">' +
+                    '<div class="modal-content">' +
+                        '<div class="modal-header">' +
+                            '<h5 class="modal-title">История изменений</h5>' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
+                        '</div>' +
+                        '<div class="modal-body">' + modalHTML + '</div>' +
+                    '</div>' +
+                '</div>';
             document.body.appendChild(modalElement);
         } else {
             modalElement.querySelector('.modal-body').innerHTML = modalHTML;
@@ -196,7 +199,7 @@ class HistoryManager {
         const modal = bootstrap.Modal.getInstance(document.getElementById('historyModal'));
         if (modal) modal.hide();
         
-        if (window.showAlert) window.showAlert(`Переход к состоянию: ${this.history[index].description}`, 'info');
+        if (window.showAlert) window.showAlert('Переход к состоянию: ' + this.history[index].description, 'info');
     }
 
     // Очистка истории
