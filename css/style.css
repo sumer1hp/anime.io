@@ -9,41 +9,54 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 10px;
 }
 
 .container-fluid {
   background: white;
   border-radius: 15px;
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin: 0 auto;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  max-width: 1600px;
 }
 
-.video-section video {
-  display: block;
+/* Видеоплеер */
+#playerContainer {
+  position: relative;
+  background: #000;
   border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1rem;
 }
 
+#videoPlayer {
+  width: 100%;
+  max-height: 400px;
+  display: block;
+}
+
+/* Оверлей субтитров */
 .subtitle-overlay {
   position: absolute;
   left: 0;
   width: 100%;
   text-align: center;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 600;
   color: white;
   text-shadow: 2px 2px 8px #000, 0 0 20px #000;
   pointer-events: none;
-  padding: 0 30px;
+  padding: 0 20px;
   box-sizing: border-box;
   line-height: 1.4;
-  bottom: 80px;
+  bottom: 60px;
+  z-index: 100;
   transition: all 0.3s ease;
 }
 
 .subtitle-overlay.pos-top {
   bottom: auto;
-  top: 80px;
+  top: 60px;
 }
 
 .subtitle-overlay.pos-middle {
@@ -52,9 +65,27 @@ body {
   transform: translateY(-50%);
 }
 
+/* Панель управления над видео */
+.video-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 10px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+  z-index: 101;
+}
+
+/* Таблица */
 .table-wrapper {
   background: white;
   border-radius: 10px;
+  max-height: 500px;
+  overflow: auto;
+}
+
+#subtitleTable {
+  margin: 0;
 }
 
 #subtitleTable th {
@@ -65,14 +96,16 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
+  padding: 0.75rem 0.5rem;
 }
 
 #subtitleTable td {
   vertical-align: middle;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.5rem;
   transition: background-color 0.2s ease;
 }
 
+/* Поля ввода */
 .time-input, .text-input {
   border: 1px solid #e9ecef;
   border-radius: 4px;
@@ -86,7 +119,7 @@ body {
 
 .time-input {
   text-align: center;
-  padding: 0.3rem 0.5rem;
+  padding: 0.3rem 0.4rem;
 }
 
 .text-input {
@@ -101,6 +134,7 @@ body {
   box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
 }
 
+/* Кнопки действий */
 .action-btn {
   width: 32px;
   height: 32px;
@@ -117,11 +151,13 @@ body {
   transform: translateY(-1px);
 }
 
+/* Подсветка текущего субтитра */
 #subtitleTable tr.table-warning td {
   background-color: #fff3cd !important;
   border-left: 3px solid var(--warning-color);
 }
 
+/* Линии вставки */
 .insert-hint {
   height: 6px;
   background: transparent;
@@ -152,13 +188,67 @@ body {
   justify-content: center;
 }
 
-/* Стили для статистики */
+/* Статистика */
 #stats .col {
   border-right: 1px solid #dee2e6;
 }
 
 #stats .col:last-child {
   border-right: none;
+}
+
+/* Уведомления */
+.temp-alert {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: none;
+  border-radius: 8px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  body {
+    padding: 5px;
+  }
+  
+  .container-fluid {
+    border-radius: 10px;
+  }
+  
+  .subtitle-overlay {
+    font-size: 18px;
+    bottom: 50px;
+    padding: 0 15px;
+  }
+  
+  .table-wrapper {
+    font-size: 0.8rem;
+    max-height: 400px;
+  }
+  
+  .action-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  #videoPlayer {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 576px) {
+  .subtitle-overlay {
+    font-size: 16px;
+    bottom: 40px;
+  }
+  
+  #videoPlayer {
+    max-height: 250px;
+  }
+  
+  .btn-sm {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.75rem;
+  }
 }
 
 /* Анимации */
@@ -171,24 +261,7 @@ body {
   animation: highlight 2s ease;
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-  .container-fluid {
-    margin: 10px;
-    border-radius: 10px;
-  }
-  
-  .subtitle-overlay {
-    font-size: 20px;
-    bottom: 60px;
-  }
-  
-  .table-wrapper {
-    font-size: 0.9rem;
-  }
-  
-  .action-btn {
-    width: 28px;
-    height: 28px;
-  }
+/* Скрытие элементов при загрузке */
+.hidden {
+  display: none !important;
 }
