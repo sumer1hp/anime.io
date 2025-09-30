@@ -110,85 +110,166 @@ class LanguageManager {
     }
 
     setupEventListeners() {
-        const select = document.getElementById('languageSelect');
+        var select = document.getElementById('languageSelect');
         if (select) {
-            select.addEventListener('change', (e) => {
+            select.addEventListener('change', function(e) {
                 this.applyLanguage(e.target.value);
-            });
+            }.bind(this));
         }
     }
 
     applyLanguage(langCode) {
-        if (!this.languages[langCode]) return;
+        if (!this.languages[langCode]) {
+            console.log('Language not found:', langCode);
+            return;
+        }
         
+        console.log('Applying language:', langCode);
         this.currentLanguage = langCode;
         localStorage.setItem('subtitleEditorLanguage', langCode);
         
-        const lang = this.languages[langCode];
+        var lang = this.languages[langCode];
         this.updateInterface(lang);
         
         // Обновляем выпадающий список
-        const select = document.getElementById('languageSelect');
-        if (select) select.value = langCode;
+        var select = document.getElementById('languageSelect');
+        if (select) {
+            select.value = langCode;
+        }
         
         // Используем showAlert из editor.js
         if (window.showAlert) {
-            window.showAlert(`Язык: ${lang.name}`, 'info');
+            window.showAlert('Язык: ' + lang.name, 'info');
         } else {
-            console.log(`Language changed to: ${lang.name}`);
+            console.log('Language changed to: ' + lang.name);
         }
     }
 
     updateInterface(lang) {
+        console.log('Updating interface for language:', lang.name);
+        
         // Обновляем заголовки
         this.updateText('[data-i18n]', lang);
         
         // Обновляем атрибуты title и placeholder
-        this.updateAttributes('[title]', 'title', lang);
-        this.updateAttributes('[placeholder]', 'placeholder', lang);
+        this.updateAttributes('[data-i18n-title]', 'title', lang);
+        this.updateAttributes('[data-i18n-placeholder]', 'placeholder', lang);
+        
+        // Обновляем статические тексты
+        this.updateStaticTexts(lang);
     }
 
     updateText(selector, lang) {
-        document.querySelectorAll(selector).forEach(element => {
-            const key = element.getAttribute('data-i18n');
+        var elements = document.querySelectorAll(selector);
+        for (var i = 0; i < elements.length; i++) {
+            var element = elements[i];
+            var key = element.getAttribute('data-i18n');
             if (key && lang.strings[key]) {
                 element.textContent = lang.strings[key];
+                console.log('Updated text:', key, '->', lang.strings[key]);
             }
-        });
+        }
     }
 
     updateAttributes(selector, attribute, lang) {
-        document.querySelectorAll(selector).forEach(element => {
-            const key = element.getAttribute(`data-i18n-${attribute}`);
+        var elements = document.querySelectorAll(selector);
+        for (var i = 0; i < elements.length; i++) {
+            var element = elements[i];
+            var key = element.getAttribute('data-i18n-' + attribute);
             if (key && lang.strings[key]) {
                 element.setAttribute(attribute, lang.strings[key]);
+                console.log('Updated attribute:', attribute, key, '->', lang.strings[key]);
             }
-        });
+        }
+    }
+
+    updateStaticTexts(lang) {
+        // Обновляем основные элементы интерфейса
+        var elementsToUpdate = {
+            // Заголовки
+            'h4': 'appTitle',
+            
+            // Labels
+            '[for="videoFile"]': 'loadVideo',
+            '[for="subtitleFile"]': 'loadSubtitles',
+            
+            // Кнопки
+            '#addSubtitleRow': 'addSubtitle',
+            '#autoNumber': 'autoNumber',
+            '#sortByTime': 'sortByTime',
+            '#importText': 'importText',
+            '#exportSrt': 'export',
+            '#exportAss': 'export'
+        };
+
+        for (var selector in elementsToUpdate) {
+            if (elementsToUpdate.hasOwnProperty(selector)) {
+                var key = elementsToUpdate[selector];
+                var element = document.querySelector(selector);
+                if (element && lang.strings[key]) {
+                    // Для кнопок обновляем текст, сохраняя иконки
+                    if (element.tagName === 'BUTTON') {
+                        var icon = element.querySelector('i');
+                        if (icon) {
+                            element.innerHTML = icon.outerHTML + ' ' + lang.strings[key];
+                        } else {
+                            element.textContent = lang.strings[key];
+                        }
+                    } else {
+                        element.textContent = lang.strings[key];
+                    }
+                    console.log('Updated static text:', selector, '->', lang.strings[key]);
+                }
+            }
+        }
+
+        // Обновляем заголовки таблицы
+        this.updateTableHeaders(lang);
+    }
+
+    updateTableHeaders(lang) {
+        var headers = document.querySelectorAll('#subtitleTable th');
+        var headerKeys = ['number', 'start', 'end', 'duration', 'speaker', 'text', 'actions'];
+        
+        for (var i = 0; i < headers.length && i < headerKeys.length; i++) {
+            var key = headerKeys[i];
+            if (lang.strings[key]) {
+                headers[i].textContent = lang.strings[key];
+            }
+        }
     }
 
     translate(key) {
-        const lang = this.languages[this.currentLanguage];
+        var lang = this.languages[this.currentLanguage];
         return lang.strings[key] || key;
     }
 
     getAvailableLanguages() {
-        return Object.keys(this.languages).map(code => ({
-            code: code,
-            name: this.languages[code].name
-        }));
+        var result = [];
+        for (var code in this.languages) {
+            if (this.languages.hasOwnProperty(code)) {
+                result.push({
+                    code: code,
+                    name: this.languages[code].name
+                });
+            }
+        }
+        return result;
     }
 }
 
 // Глобальные функции
 function t(key) {
-    return window.languageManager?.translate(key) || key;
+    return window.languageManager ? window.languageManager.translate(key) : key;
 }
 
 function changeLanguage(langCode) {
-    window.languageManager?.applyLanguage(langCode);
+    if (window.languageManager) {
+        window.languageManager.applyLanguage(langCode);
+    }
 }
 
 // Инициализация
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     window.languageManager = new LanguageManager();
 });
