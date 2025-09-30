@@ -54,7 +54,9 @@ class TextFormatting {
         activeElement.dispatchEvent(event);
 
         if (window.showAlert) {
-            window.showAlert('Форматирование применено: ' + formatType + (color ? ' ' + color : ''), 'success');
+            var message = 'Форматирование применено: ' + formatType;
+            if (color) message += ' ' + color;
+            window.showAlert(message, 'success');
         }
     }
 
@@ -93,12 +95,13 @@ class TextFormatting {
 window.textFormatting = new TextFormatting();
 
 // Глобальные функции
-function formatText(formatType, color = null) {
+function formatText(formatType, color) {
+    if (color === undefined) color = null;
     textFormatting.applyFormat(formatType, color);
 }
 
 function showFormattingModal() {
-    const modalHTML = '<div class="mb-3">' +
+    var modalHTML = '<div class="mb-3">' +
         '<h6>Форматирование текста</h6>' +
         '<div class="btn-group w-100 mb-2">' +
             '<button class="btn btn-outline-dark" onclick="formatText(\'bold\')">' +
@@ -126,8 +129,8 @@ function showFormattingModal() {
     '</div>';
 
     // Создаем модальное окно
-    const modalId = 'formattingModal';
-    let modalElement = document.getElementById(modalId);
+    var modalId = 'formattingModal';
+    var modalElement = document.getElementById(modalId);
     
     if (!modalElement) {
         modalElement = document.createElement('div');
@@ -149,17 +152,17 @@ function showFormattingModal() {
         modalElement.querySelector('.modal-body').innerHTML = modalHTML;
     }
     
-    const modal = new bootstrap.Modal(modalElement);
+    var modal = new bootstrap.Modal(modalElement);
     modal.show();
 }
 
 function clearAllFormatting() {
     if (!window.getSubtitleItems) return;
     
-    const items = window.getSubtitleItems();
-    items.forEach(item => {
-        item.text = textFormatting.clearFormatting(item.text);
-    });
+    var items = window.getSubtitleItems();
+    for (var i = 0; i < items.length; i++) {
+        items[i].text = textFormatting.clearFormatting(items[i].text);
+    }
     
     if (window.renderTable) renderTable();
     window.dispatchEvent(new CustomEvent('subtitlesChanged'));
