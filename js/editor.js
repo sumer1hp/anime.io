@@ -520,3 +520,9 @@ function timeToSeconds(timeStr) {
 
 // Экспортируем функцию для доступа из других скриптов
 window.getSubtitleItems = () => subtitleItems;
+
+   setupAdditionalButtons();
+    
+    // Инициализируем хоткеи
+    new KeyboardShortcuts(this);
+}
