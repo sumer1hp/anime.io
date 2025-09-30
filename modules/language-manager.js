@@ -110,9 +110,12 @@ class LanguageManager {
     }
 
     setupEventListeners() {
-        document.getElementById('languageSelect')?.addEventListener('change', (e) => {
-            this.applyLanguage(e.target.value);
-        });
+        const select = document.getElementById('languageSelect');
+        if (select) {
+            select.addEventListener('change', (e) => {
+                this.applyLanguage(e.target.value);
+            });
+        }
     }
 
     applyLanguage(langCode) {
@@ -128,7 +131,12 @@ class LanguageManager {
         const select = document.getElementById('languageSelect');
         if (select) select.value = langCode;
         
-        showNotification(`Язык: ${lang.name}`, 'info');
+        // Используем showAlert из editor.js
+        if (window.showAlert) {
+            window.showAlert(`Язык: ${lang.name}`, 'info');
+        } else {
+            console.log(`Language changed to: ${lang.name}`);
+        }
     }
 
     updateInterface(lang) {
