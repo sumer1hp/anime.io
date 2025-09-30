@@ -10,8 +10,8 @@ class LanguageManager {
                     'loadVideo': 'Загрузить видео',
                     'loadSubtitles': 'Загрузить субтитры',
                     'addSubtitle': 'Добавить субтитр',
-                    'export': 'Экспорт',
-                    
+                    'export1': 'Экспорт srt',
+                     'export2': 'Экспорт ASS',
                     // Таблица
                     'number': '№',
                     'start': 'Начало',
