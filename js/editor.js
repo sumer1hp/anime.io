@@ -32,6 +32,8 @@ function initializeEditor() {
   // Загрузка субтитров
   window.addEventListener('subtitlesLoaded', (e) => {
     subtitleItems = e.detail.items;
+    // Автоматически извлекаем говорящих при загрузке
+    extractSpeakersOnLoad();
     renderTable();
     updateStats();
   });
@@ -44,6 +46,36 @@ function initializeEditor() {
   
   // Попытка восстановить из автосохранения
   tryRestoreFromAutoSave();
+}
+
+function extractSpeakersOnLoad() {
+  subtitleItems.forEach(item => {
+    const detected = detectSpeakerInText(item.text);
+    if (detected) {
+      item.speaker = detected.speaker;
+      item.text = detected.text;
+    }
+  });
+}
+
+function detectSpeakerInText(text) {
+  const patterns = [
+    /^([А-ЯЁA-Z][а-яёa-z]+):\s*(.+)/, // Иван: текст
+    /^([А-ЯЁA-Z][а-яёa-z]+)\s*:\s*(.+)/, // Иван : текст
+    /^([А-ЯЁA-Z][а-яёa-z]+)\s+говорит:\s*(.+)/i, // Иван говорит: текст
+    /^([А-ЯЁA-Z][а-яёa-z]+)\s*-\s*(.+)/, // Иван - текст
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return {
+        speaker: match[1].trim(),
+        text: match[2].trim()
+      };
+    }
+  }
+  return null;
 }
 
 function initializePositionButtons() {
@@ -137,6 +169,12 @@ function renderTable() {
       html += `<tr><td colspan="7" class="p-0 insert-hint" data-index="${index}"></td></tr>`;
     }
 
+    // Получаем уникальных говорящих для автодополнения
+    const uniqueSpeakers = Array.from(new Set(subtitleItems
+      .map(item => item.speaker)
+      .filter(speaker => speaker && speaker.trim())
+    )).sort();
+
     html += `
       <tr data-index="${index}">
         <td class="text-center fw-bold cursor-pointer" data-action="jump" data-index="${index}">${item.id}</td>
@@ -183,11 +221,14 @@ function renderTable() {
   });
 
   // Добавляем datalist для подсказок имен говорящих
+  const uniqueSpeakers = Array.from(new Set(subtitleItems
+    .map(item => item.speaker)
+    .filter(speaker => speaker && speaker.trim())
+  )).sort();
+
   html += `
     <datalist id="speakersList">
-      ${Array.from(new Set(subtitleItems.map(item => item.speaker).filter(Boolean)))
-        .map(speaker => `<option value="${speaker}">`)
-        .join('')}
+      ${uniqueSpeakers.map(speaker => `<option value="${speaker}">`).join('')}
     </datalist>
   `;
 
@@ -293,8 +334,29 @@ function handleTextChange(e) {
 
 function handleSpeakerChange(e) {
   const index = parseInt(e.target.dataset.index);
-  subtitleItems[index].speaker = e.target.value;
+  const newSpeaker = e.target.value.trim();
+  subtitleItems[index].speaker = newSpeaker;
+  
+  // Обновляем datalist если добавили нового говорящего
+  if (newSpeaker) {
+    updateSpeakersDatalist();
+  }
+  
   window.dispatchEvent(new CustomEvent('subtitlesChanged'));
+}
+
+function updateSpeakersDatalist() {
+  const uniqueSpeakers = Array.from(new Set(subtitleItems
+    .map(item => item.speaker)
+    .filter(speaker => speaker && speaker.trim())
+  )).sort();
+
+  const datalist = document.getElementById('speakersList');
+  if (datalist) {
+    datalist.innerHTML = uniqueSpeakers.map(speaker => 
+      `<option value="${speaker}">`
+    ).join('');
+  }
 }
 
 function handleDeleteRow(e) {
@@ -363,13 +425,18 @@ function importText() {
   }
   
   const lines = text.split('\n').filter(line => line.trim());
-  const newItems = lines.map((line, index) => ({
-    id: subtitleItems.length + index + 1,
-    start: startTime + (index * duration),
-    end: startTime + (index * duration) + duration,
-    speaker: '',
-    text: line.trim()
-  }));
+  const newItems = lines.map((line, index) => {
+    // Автоматически определяем говорящего при импорте
+    const detected = detectSpeakerInText(line);
+    
+    return {
+      id: subtitleItems.length + index + 1,
+      start: startTime + (index * duration),
+      end: startTime + (index * duration) + duration,
+      speaker: detected ? detected.speaker : '',
+      text: detected ? detected.text : line.trim()
+    };
+  });
   
   subtitleItems.push(...newItems);
   sortByTime();
@@ -544,9 +611,14 @@ function exportSrt() {
     return;
   }
   
-  const srt = items.map((item, i) => 
-    `${i + 1}\n${secondsToTime(item.start)} --> ${secondsToTime(item.end)}\n${item.text}\n`
-  ).join('\n');
+  const srt = items.map((item, i) => {
+    let text = item.text;
+    // Добавляем говорящего перед текстом если есть
+    if (item.speaker && item.speaker.trim()) {
+      text = `${item.speaker}: ${text}`;
+    }
+    return `${i + 1}\n${secondsToTime(item.start)} --> ${secondsToTime(item.end)}\n${text}\n`;
+  }).join('\n');
   
   downloadFile('subtitles.srt', srt);
 }
@@ -574,7 +646,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 `;
   
   items.forEach(item => {
-    ass += `Dialogue: 0,${secondsToAssTime(item.start)},${secondsToAssTime(item.end)},Default,,0,0,0,,${item.text.replace(/\n/g, '\\N')}\n`;
+    let text = item.text;
+    // Добавляем говорящего перед текстом если есть
+    if (item.speaker && item.speaker.trim()) {
+      text = `${item.speaker}: ${text}`;
+    }
+    ass += `Dialogue: 0,${secondsToAssTime(item.start)},${secondsToAssTime(item.end)},Default,,0,0,0,,${text.replace(/\n/g, '\\N')}\n`;
   });
   
   downloadFile('subtitles.ass', ass);
