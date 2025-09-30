@@ -112,4 +112,149 @@ class HistoryManager {
                             <i class="bi bi-arrow-counterclockwise"></i> Отмена
                         </button>
                         <button class="btn btn-sm btn-outline-secondary ms-1" onclick="historyManager.redo()" 
-                                ${this.current
+                                ${this.currentIndex >= this.history.length - 1 ? 'disabled' : ''}>
+                            <i class="bi bi-arrow-clockwise"></i> Повтор
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                ${this.history.length === 0 ? `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clock-history display-4 d-block mb-2"></i>
+                        История изменений пуста
+                    </div>
+                ` : this.history.map((item, index) => `
+                    <div class="card mb-2 ${index === this.currentIndex ? 'border-primary' : ''}">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${item.description}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock"></i> ${item.timestamp}
+                                        ${index === this.currentIndex ? ' • <strong>Текущее состояние</strong>' : ''}
+                                    </small>
+                                </div>
+                                <div>
+                                    ${index !== this.currentIndex ? `
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="historyManager.goToState(${index})">
+                                            Перейти
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-outline-danger btn-sm" onclick="historyManager.clearHistory()">
+                    <i class="bi bi-trash"></i> Очистить историю
+                </button>
+                <small class="text-muted ms-2">Всего записей: ${this.history.length}</small>
+            </div>
+        `;
+
+        // Создаем модальное окно
+        const modalId = 'historyModal';
+        let modalElement = document.getElementById(modalId);
+        
+        if (!modalElement) {
+            modalElement = document.createElement('div');
+            modalElement.id = modalId;
+            modalElement.className = 'modal fade';
+            modalElement.tabIndex = -1;
+            modalElement.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">История изменений</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">${modalHTML}</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalElement);
+        } else {
+            modalElement.querySelector('.modal-body').innerHTML = modalHTML;
+        }
+        
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+
+    // Переход к конкретному состоянию
+    goToState(index) {
+        if (index < 0 || index >= this.history.length) return;
+        
+        this.currentIndex = index;
+        this.applyState(this.history[index]);
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('historyModal'));
+        if (modal) modal.hide();
+        
+        if (window.showAlert) window.showAlert(`Переход к состоянию: ${this.history[index].description}`, 'info');
+    }
+
+    // Очистка истории
+    clearHistory() {
+        if (!confirm('Очистить всю историю изменений?')) return;
+        
+        this.history = [];
+        this.currentIndex = -1;
+        this.saveHistory();
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('historyModal'));
+        if (modal) modal.hide();
+        
+        if (window.showAlert) window.showAlert('История очищена', 'success');
+    }
+
+    saveHistory() {
+        const historyData = {
+            items: this.history,
+            currentIndex: this.currentIndex
+        };
+        localStorage.setItem('subtitleHistory', JSON.stringify(historyData));
+    }
+
+    loadHistory() {
+        const saved = localStorage.getItem('subtitleHistory');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                this.history = data.items || [];
+                this.currentIndex = data.currentIndex || this.history.length - 1;
+            } catch (e) {
+                console.warn('Ошибка загрузки истории:', e);
+            }
+        }
+    }
+}
+
+// Глобальные функции
+function showHistory() {
+    if (window.historyManager) {
+        window.historyManager.showHistory();
+    }
+}
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', () => {
+    window.historyManager = new HistoryManager();
+    
+    // Автоматически добавляем в историю при изменениях
+    const originalAddState = window.historyManager.addState.bind(window.historyManager);
+    
+    // Перехватываем основные события
+    window.addEventListener('subtitlesLoaded', () => {
+        setTimeout(() => originalAddState('Загрузка субтитров'), 100);
+    });
+    
+    window.addEventListener('subtitlesChanged', () => {
+        setTimeout(() => originalAddState('Изменение субтитров'), 100);
+    });
+});
