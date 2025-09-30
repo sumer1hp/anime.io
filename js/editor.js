@@ -137,8 +137,6 @@ function renderTable() {
       html += `<tr><td colspan="7" class="p-0 insert-hint" data-index="${index}"></td></tr>`;
     }
 
-    const speakers = window.speakerManager ? window.speakerManager.getSpeakersList() : [];
-    
     html += `
       <tr data-index="${index}">
         <td class="text-center fw-bold cursor-pointer" data-action="jump" data-index="${index}">${item.id}</td>
@@ -156,12 +154,9 @@ function renderTable() {
           ${secondsToSimpleTime(duration)}
         </td>
         <td>
-          <select class="form-control form-control-sm speaker-select" data-index="${index}">
-            <option value="">-- Выберите --</option>
-            ${speakers.map(speaker => 
-              `<option value="${speaker}" ${item.speaker === speaker ? 'selected' : ''}>${speaker}</option>`
-            ).join('')}
-          </select>
+          <input type="text" class="form-control form-control-sm speaker-input" 
+                 value="${item.speaker || ''}" data-index="${index}"
+                 placeholder="Имя говорящего" list="speakersList">
         </td>
         <td>
           <textarea class="form-control form-control-sm text-input" rows="1" 
@@ -187,7 +182,15 @@ function renderTable() {
     `;
   });
 
-  html += `<tr><td colspan="7" class="p-0 insert-hint" data-index="${subtitleItems.length}"></td></tr>`;
+  // Добавляем datalist для подсказок имен говорящих
+  html += `
+    <datalist id="speakersList">
+      ${Array.from(new Set(subtitleItems.map(item => item.speaker).filter(Boolean)))
+        .map(speaker => `<option value="${speaker}">`)
+        .join('')}
+    </datalist>
+  `;
+
   tableBody.innerHTML = html;
 
   // Назначаем обработчики
@@ -213,6 +216,11 @@ function attachEventHandlers() {
     input.addEventListener('blur', handleTextChange);
   });
 
+  tableBody.querySelectorAll('.speaker-input').forEach(input => {
+    input.addEventListener('input', handleSpeakerChange);
+    input.addEventListener('blur', handleSpeakerChange);
+  });
+
   tableBody.querySelectorAll('.delete-row').forEach(btn => {
     btn.addEventListener('click', handleDeleteRow);
   });
@@ -230,10 +238,6 @@ function attachEventHandlers() {
       const index = parseInt(e.currentTarget.dataset.index);
       addSubtitleRowAt(index);
     });
-  });
-
-  tableBody.querySelectorAll('.speaker-select').forEach(select => {
-    select.addEventListener('change', handleSpeakerChange);
   });
 }
 
@@ -598,3 +602,4 @@ function downloadFile(filename, text) {
 
 // Экспортируем функцию для доступа из других скриптов
 window.getSubtitleItems = () => subtitleItems;
+window.showAlert = showAlert;
