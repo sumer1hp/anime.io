@@ -1,86 +1,49 @@
+:root {
+  --primary-color: #0d6efd;
+  --success-color: #198754;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+}
+
 body {
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
   font-family: 'Segoe UI', system-ui, sans-serif;
 }
-/* Стили для модального окна подключения */
-#connectModal .modal-content {
-  border-radius: 12px;
+
+.container-fluid {
+  background: white;
+  border-radius: 15px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-#connectModal .modal-header {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-#connectModal .modal-body {
-  padding-top: 0;
-}
-
-/* Стили для информации о комнате */
-#roomInfo .btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-}
-
-/* Временные уведомления */
-.temp-alert {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  border: none;
-  border-radius: 8px;
-}
 .video-section video {
   display: block;
-}
-/* Стили для уведомлений */
-.alert.position-fixed {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  border: none;
+  border-radius: 10px;
 }
 
-/* Индикатор режима */
-.guest-mode .video-section::before {
-  content: "Режим гостя";
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: rgba(255, 193, 7, 0.9);
-  color: #000;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  z-index: 100;
-}
 .subtitle-overlay {
   position: absolute;
   left: 0;
   width: 100%;
   text-align: center;
   font-size: 28px;
+  font-weight: 600;
   color: white;
-  text-shadow: 2px 2px 6px #000;
+  text-shadow: 2px 2px 8px #000, 0 0 20px #000;
   pointer-events: none;
-  padding: 0 20px;
+  padding: 0 30px;
   box-sizing: border-box;
   line-height: 1.4;
-  bottom: 50px;
-}
-.sticky-video {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-  max-height: 40vh;
-}
-
-.sticky-video video {
-  max-height: 40vh;
-  object-fit: contain;
+  bottom: 80px;
+  transition: all 0.3s ease;
 }
 
 .subtitle-overlay.pos-top {
   bottom: auto;
-  top: 50px;
+  top: 80px;
 }
 
 .subtitle-overlay.pos-middle {
@@ -91,50 +54,84 @@ body {
 
 .table-wrapper {
   background: white;
+  border-radius: 10px;
 }
 
 #subtitleTable th {
-  font-weight: 600;
-  font-size: 0.85rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 #subtitleTable td {
   vertical-align: middle;
-  padding: 0.4rem 0.6rem;
+  padding: 0.5rem 0.75rem;
+  transition: background-color 0.2s ease;
 }
 
 .time-input, .text-input {
-  border: none;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
   outline: none;
-  background: transparent;
-  font-family: monospace;
-  font-size: 0.9rem;
+  background: white;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.time-input {
+  text-align: center;
+  padding: 0.3rem 0.5rem;
 }
 
 .text-input {
-  min-height: 2.2rem;
-  line-height: 1.3;
+  min-height: 2.5rem;
+  line-height: 1.4;
+  padding: 0.4rem 0.6rem;
+  resize: vertical;
+}
+
+.time-input:focus, .text-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
 }
 
 .action-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
 }
 
 #subtitleTable tr.table-warning td {
   background-color: #fff3cd !important;
+  border-left: 3px solid var(--warning-color);
 }
 
 .insert-hint {
-  height: 8px;
+  height: 6px;
   background: transparent;
   position: relative;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.insert-hint:hover {
+  background-color: #e9ecef;
 }
 
 .insert-hint:hover::after {
@@ -143,13 +140,55 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #0d6efd;
+  background: var(--primary-color);
   color: white;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Стили для статистики */
+#stats .col {
+  border-right: 1px solid #dee2e6;
+}
+
+#stats .col:last-child {
+  border-right: none;
+}
+
+/* Анимации */
+@keyframes highlight {
+  0% { background-color: #fff3cd; }
+  100% { background-color: transparent; }
+}
+
+.highlight {
+  animation: highlight 2s ease;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .container-fluid {
+    margin: 10px;
+    border-radius: 10px;
+  }
+  
+  .subtitle-overlay {
+    font-size: 20px;
+    bottom: 60px;
+  }
+  
+  .table-wrapper {
+    font-size: 0.9rem;
+  }
+  
+  .action-btn {
+    width: 28px;
+    height: 28px;
+  }
 }
