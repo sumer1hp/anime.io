@@ -18,44 +18,46 @@ class TextFormatting {
     }
 
     // Применение форматирования к выделенному тексту
-    applyFormat(formatType, color = null) {
-        const activeElement = document.activeElement;
+    applyFormat(formatType, color) {
+        if (color === undefined) color = null;
+        
+        var activeElement = document.activeElement;
         if (!activeElement || !activeElement.classList.contains('text-input')) {
             if (window.showAlert) window.showAlert('Выделите текстовое поле для форматирования', 'warning');
             return;
         }
 
-        const start = activeElement.selectionStart;
-        const end = activeElement.selectionEnd;
-        const text = activeElement.value;
+        var start = activeElement.selectionStart;
+        var end = activeElement.selectionEnd;
+        var text = activeElement.value;
         
         if (start === end) {
             if (window.showAlert) window.showAlert('Выделите текст для форматирования', 'warning');
             return;
         }
 
-        const selectedText = text.substring(start, end);
-        let formattedText = '';
+        var selectedText = text.substring(start, end);
+        var formattedText = '';
 
         if (color) {
             // Цветное форматирование для ASS
             formattedText = '{\\c' + this.colors[color] + '}' + selectedText + '{\\c}';
         } else if (this.formats[formatType]) {
             // Обычное форматирование
-            const format = this.formats[formatType];
+            var format = this.formats[formatType];
             formattedText = '{' + format.ass + '}' + selectedText + '{' + format.end.ass + '}';
         }
 
-        const newText = text.substring(0, start) + formattedText + text.substring(end);
+        var newText = text.substring(0, start) + formattedText + text.substring(end);
         activeElement.value = newText;
         
         // Триггерим изменение
-        const event = new Event('input', { bubbles: true });
+        var event = new Event('input', { bubbles: true });
         activeElement.dispatchEvent(event);
 
         if (window.showAlert) {
             var message = 'Форматирование применено: ' + formatType;
-            if (color) message += ' ' + color;
+            if (color) message = message + ' ' + color;
             window.showAlert(message, 'success');
         }
     }
@@ -70,7 +72,7 @@ class TextFormatting {
 
     // Преобразование между форматами
     convertFormat(text, fromFormat, toFormat) {
-        let converted = text;
+        var converted = text;
         
         if (fromFormat === 'ass' && toFormat === 'srt') {
             converted = converted
