@@ -25,6 +25,11 @@ function initializeEditor() {
     video.addEventListener('timeupdate', highlightCurrentRow);
     video.addEventListener('timeupdate', updateCurrentTime);
     video.addEventListener('loadedmetadata', updateDuration);
+      setupAdditionalButtons();
+    
+    // Инициализируем хоткеи
+    new KeyboardShortcuts(this);
+    
   }
   
   // Загрузка субтитров
@@ -82,6 +87,139 @@ function setSubtitlePosition(pos, initial = false) {
   if (!initial) {
     localStorage.setItem('subtitlePosition', pos);
   }
+}
+// Анализ субтитров
+function analyzeSubtitles() {
+    const analysis = {
+        total: subtitleItems.length,
+        totalDuration: subtitleItems.reduce((sum, item) => sum + (item.end - item.start), 0),
+        overlaps: SubtitleUtilities.checkOverlaps(subtitleItems),
+        readability: subtitleItems.map(item => SubtitleUtilities.calculateReadability(item))
+    };
+
+    let report = `Анализ субтитров:\n`;
+    report += `Всего субтитров: ${analysis.total}\n`;
+    report += `Общая длительность: ${secondsToSimpleTime(analysis.totalDuration)}\n`;
+    report += `Пересечений: ${analysis.overlaps.length}\n\n`;
+
+    if (analysis.overlaps.length > 0) {
+        report += `Обнаружены пересечения:\n`;
+        analysis.overlaps.forEach(overlap => {
+            report += `Субтитры ${overlap.first.id} и ${overlap.second.id} пересекаются на ${overlap.overlap.toFixed(2)}с\n`;
+        });
+        report += `\n`;
+    }
+
+    // Анализ читабельности
+    const slow = analysis.readability.filter(r => r.readability === 'slow').length;
+    const fast = analysis.readability.filter(r => r.readability === 'fast').length;
+    const veryFast = analysis.readability.filter(r => r.readability === 'very-fast').length;
+
+    report += `Читабельность:\n`;
+    report += `- Медленные: ${slow}\n`;
+    report += `- Быстрые: ${fast}\n`;
+    report += `- Очень быстрые: ${veryFast}\n`;
+
+    alert(report);
+}
+
+// Исправление всех пересечений
+function fixAllOverlaps() {
+    subtitleItems = SubtitleUtilities.fixOverlaps(subtitleItems);
+    renderTable();
+    window.dispatchEvent(new CustomEvent('subtitlesChanged'));
+    NotificationSystem.show('Все пересечения исправлены', 'success');
+}
+
+// Поиск по субтитрам
+function searchSubtitles() {
+    const query = prompt('Введите текст для поиска:');
+    if (!query) return;
+
+    const results = SubtitleUtilities.searchSubtitles(subtitleItems, query);
+    if (results.length === 0) {
+        alert('Ничего не найдено');
+        return;
+    }
+
+    // Подсвечиваем найденные субтитры
+    document.querySelectorAll('#subtitleTable tr').forEach(tr => {
+        tr.classList.remove('table-info');
+    });
+
+    results.forEach(result => {
+        const index = subtitleItems.indexOf(result);
+        const row = document.querySelector(`#subtitleTable tr[data-index="${index}"]`);
+        if (row) {
+            row.classList.add('table-info');
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+
+    NotificationSystem.show(`Найдено ${results.length} совпадений`, 'info');
+}
+
+// Экспорт в дополнительные форматы
+function exportTxt() {
+    const items = window.getSubtitleItems ? window.getSubtitleItems() : [];
+    if (items.length === 0) {
+        alert('Нет субтитров для экспорта');
+        return;
+    }
+    
+    const txt = SubtitleUtilities.exportFormats.txt(items);
+    downloadFile('subtitles.txt', txt);
+}
+
+function exportCsv() {
+    const items = window.getSubtitleItems ? window.getSubtitleItems() : [];
+    if (items.length === 0) {
+        alert('Нет субтитров для экспорта');
+        return;
+    }
+    
+    const csv = SubtitleUtilities.exportFormats.csv(items);
+    downloadFile('subtitles.csv', csv);
+}
+
+function exportJson() {
+    const items = window.getSubtitleItems ? window.getSubtitleItems() : [];
+    if (items.length === 0) {
+        alert('Нет субтитров для экспорта');
+        return;
+    }
+    
+    const json = SubtitleUtilities.exportFormats.json(items);
+    downloadFile('subtitles.json', json);
+}
+
+// Добавляем кнопки в интерфейс (вызвать в initializeEditor())
+function setupAdditionalButtons() {
+    const buttonContainer = document.querySelector('.d-flex.flex-wrap.gap-2.mb-3');
+    
+    const additionalButtons = `
+        <button class="btn btn-outline-warning btn-sm" onclick="analyzeSubtitles()" title="Анализ субтитров">
+            <i class="bi bi-graph-up"></i> Анализ
+        </button>
+        <button class="btn btn-outline-danger btn-sm" onclick="fixAllOverlaps()" title="Исправить пересечения">
+            <i class="bi bi-shuffle"></i> Исправить пересечения
+        </button>
+        <button class="btn btn-outline-info btn-sm" onclick="searchSubtitles()" title="Поиск по тексту">
+            <i class="bi bi-search"></i> Поиск
+        </button>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-download"></i> Другие форматы
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="exportTxt()">TXT</a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportCsv()">CSV</a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportJson()">JSON</a></li>
+            </ul>
+        </div>
+    `;
+    
+    buttonContainer.innerHTML += additionalButtons;
 }
 
 function addSubtitleRow() {
