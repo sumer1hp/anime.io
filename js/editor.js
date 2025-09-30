@@ -14,11 +14,13 @@ function initializeEditor() {
   initializePositionButtons();
   
   // Обработчики кнопок
-  document.getElementById('addSubtitleRow').addEventListener('click', addSubtitleRow);
-  document.getElementById('autoNumber').addEventListener('click', autoNumberSubtitles);
-  document.getElementById('sortByTime').addEventListener('click', sortByTime);
-  document.getElementById('importText').addEventListener('click', showImportModal);
-  document.getElementById('confirmImport').addEventListener('click', importText);
+  document.getElementById('addSubtitleRow')?.addEventListener('click', addSubtitleRow);
+  document.getElementById('autoNumber')?.addEventListener('click', autoNumberSubtitles);
+  document.getElementById('sortByTime')?.addEventListener('click', sortByTime);
+  document.getElementById('importText')?.addEventListener('click', showImportModal);
+  document.getElementById('confirmImport')?.addEventListener('click', importText);
+  document.getElementById('exportSrt')?.addEventListener('click', exportSrt);
+  document.getElementById('exportAss')?.addEventListener('click', exportAss);
   
   // Обработчики видео
   if (video) {
@@ -38,18 +40,10 @@ function initializeEditor() {
   window.addEventListener('subtitlesChanged', updateStats);
   
   // Автосохранение в LocalStorage
-  setInterval(autoSave, 30000); // Каждые 30 секунд
+  setInterval(autoSave, 30000);
   
   // Попытка восстановить из автосохранения
   tryRestoreFromAutoSave();
-  
-  // Дополнительные кнопки
-  setupAdditionalButtons();
-  
-  // Инициализируем хоткеи
-  if (window.KeyboardShortcuts) {
-    new KeyboardShortcuts(this);
-  }
 }
 
 function initializePositionButtons() {
@@ -68,6 +62,8 @@ function initializePositionButtons() {
 function setSubtitlePosition(pos, initial = false) {
   const overlay = document.getElementById('subtitleOverlay');
   const buttons = document.querySelectorAll('[data-pos]');
+  
+  if (!overlay) return;
   
   // Обновляем классы
   overlay.className = 'subtitle-overlay';
@@ -97,6 +93,7 @@ function addSubtitleRow() {
     id: subtitleItems.length > 0 ? Math.max(...subtitleItems.map(s => s.id)) + 1 : 1,
     start: currentVideo ? currentVideo.currentTime : 0,
     end: currentVideo ? currentVideo.currentTime + 3 : 3,
+    speaker: '',
     text: ''
   };
   subtitleItems.push(newItem);
@@ -111,6 +108,7 @@ function addSubtitleRowAt(index) {
     id: Math.max(...subtitleItems.map(s => s.id)) + 1,
     start: before.end,
     end: Math.min(before.end + 3, after.start - 0.5),
+    speaker: '',
     text: ''
   };
   subtitleItems.splice(index, 0, newItem);
@@ -124,7 +122,7 @@ function renderTable() {
   if (!tableBody) return;
 
   if (subtitleItems.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5">
+    tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5">
       <i class="bi bi-cloud-arrow-up display-4 d-block mb-2"></i>
       Загрузите файл субтитров или создайте новый
     </td></tr>`;
@@ -136,9 +134,11 @@ function renderTable() {
     const duration = item.end - item.start;
     
     if (index > 0) {
-      html += `<tr><td colspan="6" class="p-0 insert-hint" data-index="${index}"></td></tr>`;
+      html += `<tr><td colspan="7" class="p-0 insert-hint" data-index="${index}"></td></tr>`;
     }
 
+    const speakers = window.speakerManager ? window.speakerManager.getSpeakersList() : [];
+    
     html += `
       <tr data-index="${index}">
         <td class="text-center fw-bold cursor-pointer" data-action="jump" data-index="${index}">${item.id}</td>
@@ -154,6 +154,14 @@ function renderTable() {
         </td>
         <td class="text-center text-muted small" title="Длительность">
           ${secondsToSimpleTime(duration)}
+        </td>
+        <td>
+          <select class="form-control form-control-sm speaker-select" data-index="${index}">
+            <option value="">-- Выберите --</option>
+            ${speakers.map(speaker => 
+              `<option value="${speaker}" ${item.speaker === speaker ? 'selected' : ''}>${speaker}</option>`
+            ).join('')}
+          </select>
         </td>
         <td>
           <textarea class="form-control form-control-sm text-input" rows="1" 
@@ -179,7 +187,7 @@ function renderTable() {
     `;
   });
 
-  html += `<tr><td colspan="6" class="p-0 insert-hint" data-index="${subtitleItems.length}"></td></tr>`;
+  html += `<tr><td colspan="7" class="p-0 insert-hint" data-index="${subtitleItems.length}"></td></tr>`;
   tableBody.innerHTML = html;
 
   // Назначаем обработчики
@@ -188,6 +196,7 @@ function renderTable() {
 
 function attachEventHandlers() {
   const tableBody = document.getElementById('subtitleTableBody');
+  if (!tableBody) return;
   
   tableBody.querySelectorAll('[data-action="jump"]').forEach(cell => {
     cell.addEventListener('click', jumpToTime);
@@ -221,6 +230,10 @@ function attachEventHandlers() {
       const index = parseInt(e.currentTarget.dataset.index);
       addSubtitleRowAt(index);
     });
+  });
+
+  tableBody.querySelectorAll('.speaker-select').forEach(select => {
+    select.addEventListener('change', handleSpeakerChange);
   });
 }
 
@@ -271,6 +284,12 @@ function handleTimeChange(e) {
 function handleTextChange(e) {
   const index = parseInt(e.target.dataset.index);
   subtitleItems[index].text = e.target.value;
+  window.dispatchEvent(new CustomEvent('subtitlesChanged'));
+}
+
+function handleSpeakerChange(e) {
+  const index = parseInt(e.target.dataset.index);
+  subtitleItems[index].speaker = e.target.value;
   window.dispatchEvent(new CustomEvent('subtitlesChanged'));
 }
 
@@ -344,6 +363,7 @@ function importText() {
     id: subtitleItems.length + index + 1,
     start: startTime + (index * duration),
     end: startTime + (index * duration) + duration,
+    speaker: '',
     text: line.trim()
   }));
   
@@ -380,16 +400,23 @@ function updateStats() {
   const averageDuration = total > 0 ? totalDuration / total : 0;
   const totalCharacters = subtitleItems.reduce((sum, item) => sum + item.text.length, 0);
   
-  document.getElementById('totalSubtitles').textContent = total;
-  document.getElementById('totalDuration').textContent = secondsToSimpleTime(totalDuration);
-  document.getElementById('averageDuration').textContent = secondsToSimpleTime(averageDuration);
-  document.getElementById('totalCharacters').textContent = totalCharacters.toLocaleString();
+  const totalElement = document.getElementById('totalSubtitles');
+  const durationElement = document.getElementById('totalDuration');
+  const averageElement = document.getElementById('averageDuration');
+  const charactersElement = document.getElementById('totalCharacters');
+  
+  if (totalElement) totalElement.textContent = total;
+  if (durationElement) durationElement.textContent = secondsToSimpleTime(totalDuration);
+  if (averageElement) averageElement.textContent = secondsToSimpleTime(averageDuration);
+  if (charactersElement) charactersElement.textContent = totalCharacters.toLocaleString();
   
   const stats = document.getElementById('stats');
-  if (total > 0) {
-    stats.classList.remove('d-none');
-  } else {
-    stats.classList.add('d-none');
+  if (stats) {
+    if (total > 0) {
+      stats.classList.remove('d-none');
+    } else {
+      stats.classList.add('d-none');
+    }
   }
 }
 
@@ -416,7 +443,6 @@ function autoSave() {
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('subtitleEditor_autoSave', JSON.stringify(autoSaveData));
-    console.log('Автосохранение выполнено');
   }
 }
 
@@ -429,7 +455,7 @@ function tryRestoreFromAutoSave() {
       const savedTime = new Date(data.timestamp);
       const hoursDiff = (now - savedTime) / (1000 * 60 * 60);
       
-      if (hoursDiff < 24) { // Восстанавливаем если прошло меньше 24 часов
+      if (hoursDiff < 24) {
         if (confirm('Найдено автосохранение от ' + savedTime.toLocaleString() + '. Восстановить?')) {
           subtitleItems = data.items;
           renderTable();
@@ -443,229 +469,25 @@ function tryRestoreFromAutoSave() {
   }
 }
 
-// ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ
-
-function setupAdditionalButtons() {
-  const buttonContainer = document.querySelector('.d-flex.flex-wrap.gap-2.mb-3');
-  
-  if (!buttonContainer) return;
-  
-  const additionalButtons = `
-    <button class="btn btn-outline-warning btn-sm" onclick="analyzeSubtitles()" title="Анализ субтитров">
-      <i class="bi bi-graph-up"></i> Анализ
-    </button>
-    <button class="btn btn-outline-danger btn-sm" onclick="fixAllOverlaps()" title="Исправить пересечения">
-      <i class="bi bi-shuffle"></i> Исправить пересечения
-    </button>
-    <button class="btn btn-outline-info btn-sm" onclick="searchSubtitles()" title="Поиск по тексту">
-      <i class="bi bi-search"></i> Поиск
-    </button>
-    <div class="dropdown">
-      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-        <i class="bi bi-download"></i> Другие форматы
-      </button>
-      <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="#" onclick="exportTxt()">TXT</a></li>
-        <li><a class="dropdown-item" href="#" onclick="exportCsv()">CSV</a></li>
-        <li><a class="dropdown-item" href="#" onclick="exportJson()">JSON</a></li>
-      </ul>
+function showAlert(message, type = 'info') {
+  // Создаем простое уведомление
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type} position-fixed`;
+  alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  alert.innerHTML = `
+    <div class="d-flex align-items-center">
+      <div>${message}</div>
+      <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
     </div>
   `;
   
-  buttonContainer.innerHTML += additionalButtons;
-}
-
-// Анализ субтитров
-function analyzeSubtitles() {
-  if (!window.SubtitleUtilities) {
-    alert('Утилиты не загружены');
-    return;
-  }
+  document.body.appendChild(alert);
   
-  const analysis = {
-    total: subtitleItems.length,
-    totalDuration: subtitleItems.reduce((sum, item) => sum + (item.end - item.start), 0),
-    overlaps: SubtitleUtilities.checkOverlaps(subtitleItems),
-    readability: subtitleItems.map(item => SubtitleUtilities.calculateReadability(item))
-  };
-
-  let report = `Анализ субтитров:\n`;
-  report += `Всего субтитров: ${analysis.total}\n`;
-  report += `Общая длительность: ${secondsToSimpleTime(analysis.totalDuration)}\n`;
-  report += `Пересечений: ${analysis.overlaps.length}\n\n`;
-
-  if (analysis.overlaps.length > 0) {
-    report += `Обнаружены пересечения:\n`;
-    analysis.overlaps.forEach(overlap => {
-      report += `Субтитры ${overlap.first.id} и ${overlap.second.id} пересекаются на ${overlap.overlap.toFixed(2)}с\n`;
-    });
-    report += `\n`;
-  }
-
-  // Анализ читабельности
-  const slow = analysis.readability.filter(r => r.readability === 'slow').length;
-  const fast = analysis.readability.filter(r => r.readability === 'fast').length;
-  const veryFast = analysis.readability.filter(r => r.readability === 'very-fast').length;
-
-  report += `Читабельность:\n`;
-  report += `- Медленные: ${slow}\n`;
-  report += `- Быстрые: ${fast}\n`;
-  report += `- Очень быстрые: ${veryFast}\n`;
-
-  alert(report);
-}
-
-// Исправление всех пересечений
-function fixAllOverlaps() {
-  if (!window.SubtitleUtilities) {
-    alert('Утилиты не загружены');
-    return;
-  }
-  
-  subtitleItems = SubtitleUtilities.fixOverlaps(subtitleItems);
-  renderTable();
-  window.dispatchEvent(new CustomEvent('subtitlesChanged'));
-  showAlert('Все пересечения исправлены', 'success');
-}
-
-// Поиск по субтитрам
-function searchSubtitles() {
-  if (!window.SubtitleUtilities) {
-    alert('Утилиты не загружены');
-    return;
-  }
-  
-  const query = prompt('Введите текст для поиска:');
-  if (!query) return;
-
-  const results = SubtitleUtilities.searchSubtitles(subtitleItems, query);
-  if (results.length === 0) {
-    alert('Ничего не найдено');
-    return;
-  }
-
-  // Подсвечиваем найденные субтитры
-  document.querySelectorAll('#subtitleTable tr').forEach(tr => {
-    tr.classList.remove('table-info');
-  });
-
-  results.forEach(result => {
-    const index = subtitleItems.indexOf(result);
-    const row = document.querySelector(`#subtitleTable tr[data-index="${index}"]`);
-    if (row) {
-      row.classList.add('table-info');
-      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => {
+    if (alert.parentNode) {
+      alert.remove();
     }
-  });
-
-  showAlert(`Найдено ${results.length} совпадений`, 'info');
-}
-
-// Экспорт в дополнительные форматы
-function exportTxt() {
-  if (!window.SubtitleUtilities) {
-    alert('Утилиты не загружены');
-    return;
-  }
-  
-  const items = window.getSubtitleItems ? window.getSubtitleItems() : [];
-  if (items.length === 0) {
-    alert('Нет субтитров для экспорта');
-    return;
-  }
-  
-  const txt = SubtitleUtilities.exportFormats.txt(items);
-  downloadFile('subtitles.txt', txt);
-}
-
-function exportCsv() {
-  if (!window.SubtitleUtilities) {
-    alert('Утилиты не загружены');
-    return;
-  }
-  
-  const items = window.getSubtitleItems ? window.getSubtitleItems() : [];
-  if (items.length === 0) {
-    alert('Нет субтитров для экспорта');
-    return;
-  }
-  
-  const csv = SubtitleUtilities.exportFormats.csv(items);
-  downloadFile('subtitles.csv', csv);
-}
-
-function exportJson() {
-  if (!window.SubtitleUtilities) {
-    alert('Утилиты не загружены');
-    return;
-  }
-  
-  const items = window.getSubtitleItems ? window.getSubtitleItems() : [];
-  if (items.length === 0) {
-    alert('Нет субтитров для экспорта');
-    return;
-  }
-  
-  const json = SubtitleUtilities.exportFormats.json(items);
-  downloadFile('subtitles.json', json);
-}
-
-function downloadFile(filename, text) {
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function showAlert(message, type = 'info') {
-  if (window.NotificationSystem) {
-    NotificationSystem.show(message, type);
-  } else {
-    // Fallback если утилиты не загружены
-    const existingAlerts = document.querySelectorAll('.temp-alert');
-    existingAlerts.forEach(alert => alert.remove());
-
-    const alertClass = {
-      'success': 'alert-success',
-      'error': 'alert-danger',
-      'warning': 'alert-warning',
-      'info': 'alert-info'
-    }[type] || 'alert-info';
-
-    const alert = document.createElement('div');
-    alert.className = `alert ${alertClass} temp-alert position-fixed`;
-    alert.style.cssText = 'top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; min-width: 300px;';
-    alert.innerHTML = `
-      <div class="d-flex align-items-center">
-        <i class="bi ${getAlertIcon(type)} me-2"></i>
-        <div>${message}</div>
-        <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
-      </div>
-    `;
-    
-    document.body.appendChild(alert);
-    
-    setTimeout(() => {
-      if (alert.parentNode) {
-        alert.remove();
-      }
-    }, 4000);
-  }
-}
-
-function getAlertIcon(type) {
-  const icons = {
-    'success': 'bi-check-circle',
-    'error': 'bi-exclamation-circle',
-    'warning': 'bi-exclamation-triangle',
-    'info': 'bi-info-circle'
-  };
-  return icons[type] || 'bi-info-circle';
+  }, 3000);
 }
 
 // Вспомогательные функции времени
@@ -708,6 +530,70 @@ function timeToSeconds(timeStr) {
   }
   
   return NaN;
+}
+
+// Функции экспорта
+function exportSrt() {
+  const items = window.getSubtitleItems();
+  if (items.length === 0) {
+    alert('Нет субтитров для экспорта');
+    return;
+  }
+  
+  const srt = items.map((item, i) => 
+    `${i + 1}\n${secondsToTime(item.start)} --> ${secondsToTime(item.end)}\n${item.text}\n`
+  ).join('\n');
+  
+  downloadFile('subtitles.srt', srt);
+}
+
+function exportAss() {
+  const items = window.getSubtitleItems();
+  if (items.length === 0) {
+    alert('Нет субтитров для экспорта');
+    return;
+  }
+  
+  let ass = `[Script Info]
+Title: Экспортированные субтитры
+ScriptType: v4.00+
+WrapStyle: 0
+PlayResX: 384
+PlayResY: 288
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,2,2,10,10,10,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+`;
+  
+  items.forEach(item => {
+    ass += `Dialogue: 0,${secondsToAssTime(item.start)},${secondsToAssTime(item.end)},Default,,0,0,0,,${item.text.replace(/\n/g, '\\N')}\n`;
+  });
+  
+  downloadFile('subtitles.ass', ass);
+}
+
+function secondsToAssTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  const cs = Math.floor((sec % 1) * 100);
+  return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${cs.toString().padStart(2, '0')}`;
+}
+
+function downloadFile(filename, text) {
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // Экспортируем функцию для доступа из других скриптов
