@@ -16,7 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (file.name.endsWith('.ass')) {
         items = parseAss(content);
       } else {
-        alert('Неподдерживаемый формат файла');
+        // Пытаемся определить формат автоматически
+        items = parseSrt(content) || parseVtt(content) || parseAss(content) || [];
+      }
+      
+      if (items.length === 0) {
+        alert('Не удалось распознать формат субтитров. Проверьте файл.');
         return;
       }
       
@@ -55,11 +60,15 @@ function parseSrt(text) {
 }
 
 function parseVtt(content) {
-  // Базовая реализация для VTT
   const lines = content.split('\n');
   const items = [];
   let i = 0;
   let idCounter = 1;
+
+  // Пропускаем заголовок WEBVTT
+  while (i < lines.length && !lines[i].includes('-->')) {
+    i++;
+  }
 
   while (i < lines.length) {
     const line = lines[i].trim();
@@ -73,16 +82,21 @@ function parseVtt(content) {
         i++;
         const textLines = [];
         while (i < lines.length && lines[i].trim() !== '') {
-          textLines.push(lines[i].trim());
+          // Пропускаем WebVTT cue settings
+          if (!lines[i].includes('::') && !lines[i].includes('NOTE')) {
+            textLines.push(lines[i].trim());
+          }
           i++;
         }
         
-        items.push({
-          id: idCounter++,
-          start,
-          end,
-          text: textLines.join('\n')
-        });
+        if (textLines.length > 0) {
+          items.push({
+            id: idCounter++,
+            start,
+            end,
+            text: textLines.join('\n')
+          });
+        }
       }
     }
     i++;
@@ -92,7 +106,6 @@ function parseVtt(content) {
 }
 
 function parseAss(content) {
-  // Базовая реализация для ASS (только диалоги)
   const items = [];
   const lines = content.split('\n');
   let inEvents = false;
@@ -106,18 +119,23 @@ function parseAss(content) {
       continue;
     }
     
+    if (inEvents && line.startsWith('Format:')) {
+      // Запоминаем формат для правильного парсинга
+      continue;
+    }
+    
     if (inEvents && line.startsWith('Dialogue:')) {
       const parts = line.split(',');
       if (parts.length >= 10) {
         const start = assTimeToSeconds(parts[1]);
         const end = assTimeToSeconds(parts[2]);
-        const text = parts.slice(9).join(',').replace(/\\N/g, '\n');
+        const text = parts.slice(9).join(',').replace(/\\N/g, '\n').replace(/\{.*?\}/g, '');
         
         items.push({
           id: idCounter++,
           start,
           end,
-          text: text
+          text: text.trim()
         });
       }
     }
@@ -146,6 +164,11 @@ function timeToSeconds(timeStr) {
   match = timeStr.match(/(\d{2}):(\d{2}):(\d{2})[,.](\d{2})/);
   if (match) {
     return (+match[1]) * 3600 + (+match[2]) * 60 + (+match[3]) + (+match[4]) / 100;
+  }
+  
+  match = timeStr.match(/(\d{2}):(\d{2}):(\d{2})\.(\d{3})/);
+  if (match) {
+    return (+match[1]) * 3600 + (+match[2]) * 60 + (+match[3]) + (+match[4]) / 1000;
   }
   
   return 0;
