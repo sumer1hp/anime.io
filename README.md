@@ -1,12 +1,10 @@
 <img width="1862" height="524" alt="image" src="https://github.com/user-attachments/assets/5839f131-083d-4806-8f85-8af1fc8faf69" />
-#фото версии 0.5
+	🌐 фото версии 0.5
 
 
 # 🎬 Редактор субтитров PRO
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-brightgreen?style=flat&logo=github)](https://sumer1hp.github.io/anime.io/index.html)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/sumer1hp/anime.io/pulls)
+
 
 **Мощный, полностью браузерный редактор субтитров** с поддержкой видео, продвинутым редактированием и экспортом в различные форматы. Работает оффлайн, не требует установки.
 
