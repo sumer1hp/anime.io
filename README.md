@@ -1,5 +1,7 @@
 <img width="1862" height="524" alt="image" src="https://github.com/user-attachments/assets/5839f131-083d-4806-8f85-8af1fc8faf69" />
-фото версии 0.5
+#фото версии 0.5
+
+
 # 🎬 Редактор субтитров PRO
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-brightgreen?style=flat&logo=github)](https://sumer1hp.github.io/anime.io/index.html)
