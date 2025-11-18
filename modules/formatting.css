@@ -1,0 +1,32 @@
+/* modules/formatting.css */
+.format-indicator {
+    font-size: 0.8em;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.format-btn:hover + .format-indicator,
+.format-indicator:hover {
+    opacity: 1;
+}
+
+.line-format-menu {
+    z-index: 1060;
+}
+
+.line-format-menu .dropdown-item {
+    cursor: pointer;
+}
+
+.line-format-menu .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Подсветка отформатированных строк */
+tr.formatted-row {
+    border-left: 3px solid #0dcaf0;
+}
+
+.format-indicator .bi {
+    font-size: 0.9em;
+}

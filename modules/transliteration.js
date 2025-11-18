@@ -2,205 +2,333 @@
 class Transliteration {
     constructor() {
         this.rules = {
-            // Русский -> Латинский (ISO 9)
+            // Русская раскладка -> Английская раскладка
             ruToEn: {
-                'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'zh',
-                'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
-                'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts',
-                'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu',
-                'я': 'ya',
-                'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo', 'Ж': 'Zh',
-                'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O',
-                'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'Kh', 'Ц': 'Ts',
-                'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu',
-                'Я': 'Ya'
+                'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u', 'ш': 'i', 'щ': 'o', 'з': 'p',
+                'х': '[', 'ъ': ']', 'ф': 'a', 'ы': 's', 'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k',
+                'д': 'l', 'ж': ';', 'э': "'", 'я': 'z', 'ч': 'x', 'с': 'c', 'м': 'v', 'и': 'b', 'т': 'n', 'ь': 'm',
+                'б': ',', 'ю': '.', 'ё': '`',
+                'Й': 'Q', 'Ц': 'W', 'У': 'E', 'К': 'R', 'Е': 'T', 'Н': 'Y', 'Г': 'U', 'Ш': 'I', 'Щ': 'O', 'З': 'P',
+                'Х': '{', 'Ъ': '}', 'Ф': 'A', 'Ы': 'S', 'В': 'D', 'А': 'F', 'П': 'G', 'Р': 'H', 'О': 'J', 'Л': 'K',
+                'Д': 'L', 'Ж': ':', 'Э': '"', 'Я': 'Z', 'Ч': 'X', 'С': 'C', 'М': 'V', 'И': 'B', 'Т': 'N', 'Ь': 'M',
+                'Б': '<', 'Ю': '>', 'Ё': '~'
             },
-            // Латинский -> Русский (обратная транслитерация)
+            // Английская раскладка -> Русская раскладка
             enToRu: {
-                'a': 'а', 'b': 'б', 'v': 'в', 'g': 'г', 'd': 'д', 'e': 'е', 'yo': 'ё', 'zh': 'ж',
-                'z': 'з', 'i': 'и', 'y': 'й', 'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н', 'o': 'о',
-                'p': 'п', 'r': 'р', 's': 'с', 't': 'т', 'u': 'у', 'f': 'ф', 'kh': 'х', 'ts': 'ц',
-                'ch': 'ч', 'sh': 'ш', 'shch': 'щ', 'yu': 'ю', 'ya': 'я',
-                'A': 'А', 'B': 'Б', 'V': 'В', 'G': 'Г', 'D': 'Д', 'E': 'Е', 'Yo': 'Ё', 'Zh': 'Ж',
-                'Z': 'З', 'I': 'И', 'Y': 'Й', 'K': 'К', 'L': 'Л', 'M': 'М', 'N': 'Н', 'O': 'О',
-                'P': 'П', 'R': 'Р', 'S': 'С', 'T': 'Т', 'U': 'У', 'F': 'Ф', 'Kh': 'Х', 'Ts': 'Ц',
-                'Ch': 'Ч', 'Sh': 'Ш', 'Shch': 'Щ', 'Yu': 'Ю', 'Ya': 'Я'
+                'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к', 't': 'е', 'y': 'н', 'u': 'г', 'i': 'ш', 'o': 'щ', 'p': 'з',
+                '[': 'х', ']': 'ъ', 'a': 'ф', 's': 'ы', 'd': 'в', 'f': 'а', 'g': 'п', 'h': 'р', 'j': 'о', 'k': 'л',
+                'l': 'д', ';': 'ж', "'": 'э', 'z': 'я', 'x': 'ч', 'c': 'с', 'v': 'м', 'b': 'и', 'n': 'т', 'm': 'ь',
+                ',': 'б', '.': 'ю', '`': 'ё',
+                'Q': 'Й', 'W': 'Ц', 'E': 'У', 'R': 'К', 'T': 'Е', 'Y': 'Н', 'U': 'Г', 'I': 'Ш', 'O': 'Щ', 'P': 'З',
+                '{': 'Х', '}': 'Ъ', 'A': 'Ф', 'S': 'Ы', 'D': 'В', 'F': 'А', 'G': 'П', 'H': 'Р', 'J': 'О', 'K': 'Л',
+                'L': 'Д', ':': 'Ж', '"': 'Э', 'Z': 'Я', 'X': 'Ч', 'C': 'С', 'V': 'М', 'B': 'И', 'N': 'Т', 'M': 'Ь',
+                '<': 'Б', '>': 'Ю', '~': 'Ё'
             }
         };
+
+        // Чистые буквы (никогда не бывают знаками препинания)
+        this.pureLetters = new Set([
+            'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+            'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+            'а','б','в','г','д','е','ё','ж','з','и','й','к','л','м','н','о','п','р','с','т','у','ф','х','ц','ч','ш','щ','ъ','ы','ь','э','ю','я',
+            'А','Б','В','Г','Д','Е','Ё','Ж','З','И','Й','К','Л','М','Н','О','П','Р','С','Т','У','Ф','Х','Ц','Ч','Ш','Щ','Ъ','Ы','Ь','Э','Ю','Я'
+        ]);
+
+        // Символы, которые могут быть и буквами и знаками (в зависимости от контекста)
+        this.ambiguousChars = new Set([
+            ';', "'", ',', '.', '`', '[', ']', '{', '}', ':', '"', '<', '>', '~'
+        ]);
     }
 
-    // Определение направления транслитерации
-    detectDirection(text) {
-        const cyrillicCount = (text.match(/[а-яё]/gi) || []).length;
-        const latinCount = (text.match(/[a-z]/gi) || []).length;
+    // Определяем, является ли символ частью слова с учетом контекста
+    isWordCharacter(char, prevChar = null, nextChar = null) {
+        // Если это чистая буква - всегда часть слова
+        if (this.pureLetters.has(char)) {
+            return true;
+        }
         
-        if (cyrillicCount > latinCount) return 'ruToEn';
-        if (latinCount > cyrillicCount) return 'enToRu';
-        return 'ruToEn'; // По умолчанию
-    }
-
-    // Транслитерация текста
-    transliterateText(text, direction = null) {
-        if (!text.trim()) return text;
-        
-        const actualDirection = direction || this.detectDirection(text);
-        const rules = this.rules[actualDirection];
-        
-        let result = text;
-        
-        // Сначала обрабатываем многобуквенные комбинации
-        const multiCharRules = {};
-        Object.keys(rules).forEach(key => {
-            if (key.length > 1) {
-                multiCharRules[key] = rules[key];
+        // Если это неоднозначный символ - проверяем контекст
+        if (this.ambiguousChars.has(char)) {
+            // Если предыдущий ИЛИ следующий символ - буква, то это часть слова
+            const prevIsLetter = prevChar && this.pureLetters.has(prevChar);
+            const nextIsLetter = nextChar && this.pureLetters.has(nextChar);
+            
+            // Если есть хотя бы одна буква рядом - это часть слова
+            if (prevIsLetter || nextIsLetter) {
+                return true;
             }
-        });
+            
+            // Если стоит один и нет букв рядом - это знак препинания
+            return false;
+        }
         
-        // Применяем многобуквенные правила
-        Object.keys(multiCharRules).forEach(key => {
-            const regex = new RegExp(key, 'gi');
-            result = result.replace(regex, match => {
-                return match === match.toUpperCase() 
-                    ? multiCharRules[key].toUpperCase()
-                    : multiCharRules[key];
-            });
-        });
+        // Все остальное - не слово
+        return false;
+    }
+
+    // Находим границы слова (включая неоднозначные символы на границах)
+    findWordBoundaries(text, startIndex) {
+        const length = text.length;
+        if (startIndex >= length) return { start: startIndex, end: startIndex };
         
-        // Затем однобуквенные правила
-        for (let i = 0; i < result.length; i++) {
-            const char = result[i];
-            if (rules[char]) {
-                result = result.substring(0, i) + rules[char] + result.substring(i + 1);
-                i += rules[char].length - 1;
+        let start = startIndex;
+        let end = startIndex;
+        
+        // Идем назад до начала слова
+        for (let i = startIndex; i >= 0; i--) {
+            const char = text[i];
+            const prevChar = i > 0 ? text[i - 1] : null;
+            const nextChar = i < length - 1 ? text[i + 1] : null;
+            
+            if (this.isWordCharacter(char, prevChar, nextChar)) {
+                start = i;
+            } else {
+                break;
+            }
+        }
+        
+        // Идем вперед до конца слова
+        for (let i = startIndex; i < length; i++) {
+            const char = text[i];
+            const prevChar = i > 0 ? text[i - 1] : null;
+            const nextChar = i < length - 1 ? text[i + 1] : null;
+            
+            if (this.isWordCharacter(char, prevChar, nextChar)) {
+                end = i;
+            } else {
+                break;
+            }
+        }
+        
+        return { start, end: end + 1 }; // end + 1 потому что substring исключает end
+    }
+
+    // Улучшенная смена раскладки с учетом контекста
+    smartSwitchLayout(text, direction = 'auto') {
+        if (!text || typeof text !== 'string') return text;
+        
+        let result = '';
+        let i = 0;
+        const length = text.length;
+        
+        while (i < length) {
+            const char = text[i];
+            
+            // Если это начало потенциального слова
+            if (this.isWordCharacter(char, 
+                i > 0 ? text[i - 1] : null, 
+                i < length - 1 ? text[i + 1] : null)) {
+                
+                // Находим границы всего слова (включая неоднозначные символы на границах)
+                const boundaries = this.findWordBoundaries(text, i);
+                const word = text.substring(boundaries.start, boundaries.end);
+                
+                // Меняем раскладку для всего слова
+                const switchedWord = this.switchLayout(word, direction);
+                result += switchedWord;
+                
+                i = boundaries.end; // Переходим к позиции после слова
+            } else {
+                // Не слово - добавляем как есть
+                result += char;
+                i++;
             }
         }
         
         return result;
     }
 
-    // Транслитерация всех субтитров
-    transliterateAllSubtitles(direction = null) {
+    // Простая смена раскладки для слова
+    switchLayout(word, direction = 'auto') {
+        if (!word || typeof word !== 'string') return word;
+        
+        const actualDirection = direction === 'auto' ? this.detectLayout(word) : direction;
+        let result = '';
+        
+        if (actualDirection === 'enToRu') {
+            // Английская -> Русская
+            for (let i = 0; i < word.length; i++) {
+                const char = word[i];
+                result += this.rules.enToRu[char] || char;
+            }
+        } else {
+            // Русская -> Английская
+            for (let i = 0; i < word.length; i++) {
+                const char = word[i];
+                result += this.rules.ruToEn[char] || char;
+            }
+        }
+        
+        return result;
+    }
+
+    // Определение раскладки слова
+    detectLayout(word) {
+        if (!word) return 'ruToEn';
+        
+        let ruCount = 0;
+        let enCount = 0;
+        
+        for (let i = 0; i < word.length; i++) {
+            const char = word[i];
+            if (this.rules.ruToEn[char]) ruCount++;
+            if (this.rules.enToRu[char]) enCount++;
+        }
+        
+        return ruCount >= enCount ? 'ruToEn' : 'enToRu';
+    }
+
+    // Быстрая смена раскладки для выделенного текста в таблице
+    quickSwitchLayout(index) {
+        if (!window.getSubtitleItems) return;
+        
+        const items = window.getSubtitleItems();
+        if (!items[index]) return;
+        
+        const textarea = document.querySelector(`.text-input[data-index="${index}"]`);
+        if (!textarea) return;
+        
+        const originalText = items[index].text;
+        let newText = '';
+        
+        // Проверяем, есть ли выделение
+        const selectionStart = textarea.selectionStart;
+        const selectionEnd = textarea.selectionEnd;
+        
+        if (selectionStart !== selectionEnd) {
+            // Меняем раскладку только для выделенного текста
+            const selectedText = originalText.substring(selectionStart, selectionEnd);
+            const switchedText = this.smartSwitchLayout(selectedText, 'auto');
+            
+            newText = originalText.substring(0, selectionStart) + 
+                     switchedText + 
+                     originalText.substring(selectionEnd);
+        } else {
+            // Меняем раскладку для всего текста
+            newText = this.smartSwitchLayout(originalText, 'auto');
+        }
+        
+        // Обновляем данные и поле ввода
+        items[index].text = newText;
+        textarea.value = newText;
+        
+        // Форсируем обновление интерфейса
+        this.forceUpdate();
+        
+        console.log('Раскладка изменена:', { 
+            original: originalText, 
+            new: newText, 
+            index,
+            selection: selectionStart !== selectionEnd ? 'partial' : 'full'
+        });
+    }
+
+    // Принудительное обновление интерфейса
+    forceUpdate() {
+        // Обновляем оверлей субтитров
+        if (window.updateSubtitleOverlay) {
+            window.updateSubtitleOverlay();
+        }
+        
+        // Отправляем событие об изменении
+        window.dispatchEvent(new CustomEvent('subtitlesChanged'));
+        
+        // Показываем уведомление
+        if (window.showAlert) {
+            window.showAlert('Раскладка изменена', 'success');
+        } else {
+            console.log('Раскладка изменена');
+        }
+    }
+
+    // Смена раскладки для всех субтитров
+    switchAllLayouts(direction = 'auto') {
         if (!window.getSubtitleItems) return 0;
         
         const items = window.getSubtitleItems();
-        let transliteratedCount = 0;
+        let switchedCount = 0;
         
-        items.forEach(item => {
+        items.forEach((item, index) => {
             const original = item.text;
-            item.text = this.transliterateText(original, direction);
-            if (item.text !== original) transliteratedCount++;
+            const newText = this.smartSwitchLayout(original, direction);
+            
+            if (newText !== original) {
+                item.text = newText;
+                switchedCount++;
+                
+                // Обновляем соответствующее поле ввода
+                const textarea = document.querySelector(`.text-input[data-index="${index}"]`);
+                if (textarea) {
+                    textarea.value = newText;
+                }
+            }
         });
         
-        return transliteratedCount;
+        if (switchedCount > 0) {
+            this.forceUpdate();
+        }
+        
+        return switchedCount;
     }
 }
 
+// Создаем глобальный экземпляр
 window.transliteration = new Transliteration();
 
-// Глобальные функции
-function transliterateText() {
+// Глобальные функции для быстрого доступа
+function quickSwitchLayout(index) {
+    console.log('quickSwitchLayout called with index:', index);
+    window.transliteration.quickSwitchLayout(index);
+}
+
+function switchAllLayouts() {
+    console.log('switchAllLayouts called');
+    
     if (!window.getSubtitleItems) {
-        showNotification('Нет загруженных субтитров', 'warning');
+        console.warn('No subtitle items found');
+        if (window.showNotification) {
+            window.showNotification('Нет загруженных субтитров', 'warning');
+        }
+        return;
+    }
+    
+    const items = window.getSubtitleItems();
+    if (items.length === 0) {
+        console.warn('No subtitles loaded');
         return;
     }
     
     // Определяем направление по первому субтитру
-    const items = window.getSubtitleItems();
-    if (items.length === 0) return;
-    
     const sampleText = items[0].text;
-    const direction = transliteration.detectDirection(sampleText);
-    const directionName = direction === 'ruToEn' ? 'русский → английский' : 'английский → русский';
+    const direction = window.transliteration.detectLayout(sampleText);
+    const directionName = direction === 'ruToEn' ? 'русская → английская' : 'английская → русская';
     
-    const count = transliteration.transliterateAllSubtitles(direction);
+    console.log('Switching layout for all subtitles:', { direction, directionName, count: items.length });
+    
+    const count = window.transliteration.switchAllLayouts(direction);
     
     if (count > 0) {
-        if (window.renderTable) renderTable();
-        window.dispatchEvent(new CustomEvent('subtitlesChanged'));
-        showNotification(`Транслитерировано ${count} субтитров (${directionName})`, 'success');
+        // Принудительно обновляем таблицу
+        if (window.renderTable) {
+            window.renderTable();
+        }
+        
+        if (window.showNotification) {
+            window.showNotification(`Изменена раскладка для ${count} субтитров (${directionName})`, 'success');
+        }
+        
+        console.log(`Layout switched for ${count} subtitles`);
     } else {
-        showNotification('Нечего транслитерировать', 'info');
+        if (window.showNotification) {
+            window.showNotification('Нечего изменять', 'info');
+        }
+        console.log('No changes made');
     }
 }
 
-function showTransliterationModal() {
-    const modalHTML = `
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> Выберите направление транслитерации
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Направление:</label>
-            <select class="form-select" id="transliterationDirection">
-                <option value="auto">Автоопределение</option>
-                <option value="ruToEn">Русский → Английский</option>
-                <option value="enToRu">Английский → Русский</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Предпросмотр:</label>
-            <div class="border p-2 small bg-light" id="transliterationPreview">
-                Введите текст для предпросмотра...
-            </div>
-        </div>
-        <div class="mb-3">
-            <input type="text" class="form-control" id="transliterationSample" 
-                   placeholder="Введите текст для проверки" 
-                   oninput="updateTransliterationPreview()">
-        </div>
-    `;
-    
-    const modal = new bootstrap.Modal(document.createElement('div'));
-    modal._element.innerHTML = `
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Транслитерация</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">${modalHTML}</div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-primary" onclick="applyTransliteration()">
-                        Применить ко всем
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal._element);
-    modal.show();
-}
-
-function updateTransliterationPreview() {
-    const sample = document.getElementById('transliterationSample').value;
-    const direction = document.getElementById('transliterationDirection').value;
-    
-    if (!sample.trim()) {
-        document.getElementById('transliterationPreview').textContent = 'Введите текст для предпросмотра...';
-        return;
-    }
-    
-    const actualDirection = direction === 'auto' ? null : direction;
-    const result = transliteration.transliterateText(sample, actualDirection);
-    
-    document.getElementById('transliterationPreview').innerHTML = `
-        <strong>Результат:</strong> ${result}
-        ${sample !== result ? '<br><small class="text-success">✓ Изменения применены</small>' : ''}
-    `;
-}
-
-function applyTransliteration() {
-    const direction = document.getElementById('transliterationDirection').value;
-    const actualDirection = direction === 'auto' ? null : direction;
-    
-    const count = transliteration.transliterateAllSubtitles(actualDirection);
-    
-    if (count > 0) {
-        if (window.renderTable) renderTable();
-        window.dispatchEvent(new CustomEvent('subtitlesChanged'));
-        showNotification(`Транслитерировано ${count} субтитров`, 'success');
-    }
-    
-    bootstrap.Modal.getInstance(document.querySelector('.modal.show')).hide();
+// Обновляем существующую функцию транслитерации
+function transliterateText() {
+    console.log('transliterateText called - using layout switching instead');
+    // Теперь используем смену раскладки вместо транслитерации
+    switchAllLayouts();
 }
