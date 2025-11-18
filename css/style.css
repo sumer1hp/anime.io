@@ -7,133 +7,285 @@
 
 body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
+  height: 100vh;
   font-family: 'Segoe UI', system-ui, sans-serif;
-  padding: 10px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  color: #333; /* Базовый цвет текста для светлой темы */
 }
 
 .container-fluid {
-  background: white;
-  border-radius: 15px;
-  margin: 0 auto;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  max-width: 1600px;
+  background: rgba(255, 255, 255, 0.95); /* Полупрозрачный белый для мягкого наложения на градиент */
+  height: 100vh;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); /* Лёгкая тень для "выпуклости" */
 }
 
 /* Видеоплеер */
 #playerContainer {
   position: relative;
   background: #000;
-  border-radius: 10px;
+  border-radius: 12px; /* Более мягкие углы */
   overflow: hidden;
   margin-bottom: 1rem;
+  min-height: 300px; /* Уменьшил с 340px для компактности */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Тень для объёма */
+  transition: box-shadow 0.3s ease; /* Плавный ховер-эффект */
+}
+
+#playerContainer:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 #videoPlayer {
   width: 100%;
-  max-height: 400px;
+  height: 100%;
   display: block;
+  object-fit: contain;
 }
 
 /* Оверлей субтитров */
 .subtitle-overlay {
   position: absolute;
-  left: 0;
-  width: 100%;
+  bottom: 80px; /* Подняли выше для места под контролами */
+  left: 5%;
+  right: 5%;
   text-align: center;
-  font-size: 24px;
-  font-weight: 600;
-  color: white;
-  text-shadow: 2px 2px 8px #000, 0 0 20px #000;
+  font-size: 1.5rem; /* Увеличил для читаемости */
+  font-weight: 500;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8); /* Улучшенная тень для контраста */
   pointer-events: none;
-  padding: 0 20px;
-  box-sizing: border-box;
-  line-height: 1.4;
-  bottom: 60px;
-  z-index: 100;
-  transition: all 0.3s ease;
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.3); /* Полупрозрачный фон для лучшей видимости */
+  padding: 10px 20px;
+  border-radius: 8px;
+  max-width: 80%;
+  margin: 0 auto;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
-
-.subtitle-overlay.pos-top {
-  bottom: auto;
-  top: 60px;
-}
-
-.subtitle-overlay.pos-middle {
-  bottom: auto;
-  top: 50%;
-  transform: translateY(-50%);
-}
+.subtitle-overlay.pos-top { top: 80px; bottom: auto; }
+.subtitle-overlay.pos-middle { top: 50%; transform: translateY(-50%); bottom: auto; }
+.subtitle-overlay.pos-left { text-align: left; left: 20px; right: auto; max-width: 60%; }
+.subtitle-overlay.pos-right { text-align: right; left: auto; right: 20px; max-width: 60%; }
 
 /* Панель управления над видео */
 .video-controls {
   position: absolute;
-  top: 0;
+  bottom: 0; /* Перенесли вниз для лучшей доступности */
   left: 0;
   right: 0;
   padding: 10px;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
   z-index: 101;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
 }
-
+/* Панель управления над видео */
+.video-controls:hover {
+  opacity: 1;
+}
 /* Таблица */
 .table-wrapper {
-  background: white;
-  border-radius: 10px;
-  max-height: 500px;
-  overflow: auto;
+  height: 100%;
+  overflow-y: auto; /* Включаем вертикальную прокрутку только для таблицы */
+  overflow-x: hidden; /* Если не нужна горизонтальная */
+  background: transparent; /* Или white, как было */
+  border-radius: 0;
 }
 
 #subtitleTable {
-  margin: 0;
+width: 100%; /* Чтобы таблица занимала всю ширину и не вызывала горизонтальный скролл */
+  table-layout: fixed; /* Фиксируем layout для стабильности */
 }
 
 #subtitleTable th {
-  font-weight: 700;
-  font-size: 0.8rem;
-  background: #f8f9fa;
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: linear-gradient(to bottom, #f8f9fa, #e9ecef); /* Градиент для заголовка */
   border-bottom: 2px solid #dee2e6;
+  padding: 0.8rem 0.6rem;
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 0.75rem 0.5rem;
 }
 
 #subtitleTable td {
-  vertical-align: middle;
-  padding: 0.5rem 0.5rem;
+  padding: 0.6rem 0.6rem;
   transition: background-color 0.2s ease;
 }
 
-/* Поля ввода */
-.time-input, .text-input {
-  border: 1px solid #e9ecef;
-  border-radius: 4px;
-  outline: none;
-  background: white;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
-  width: 100%;
+#subtitleTable tr:hover td {
+  background-color: #f8f9fa; /* Hover-эффект для строк */
 }
 
-.time-input {
-  text-align: center;
-  padding: 0.3rem 0.4rem;
+/* Поля ввода */
+.time-input, .text-input, .speaker-input {
+  border: 1px solid #dee2e6;
+  border-radius: 6px; /* Мягкие углы */
+  font-size: 0.85rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.time-input:focus, .text-input:focus, .speaker-input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1); /* Мягкий фокус */
 }
 
 .text-input {
-  min-height: 2.5rem;
-  line-height: 1.4;
-  padding: 0.4rem 0.6rem;
+  min-height: 40px; /* Увеличил для удобства ввода */
   resize: vertical;
 }
 
-.time-input:focus, .text-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+.action-btn, .compact-btn {
+  border-radius: 6px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
+.action-btn:hover, .compact-btn:hover {
+  transform: scale(1.05); /* Лёгкий зум на hover */
+}
+
+.insert-hint {
+  height: 4px;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, height 0.2s ease;
+}
+
+/* Стили для модуля копирования времени */
+.copy-time-btn {
+    border-color: #6c757d;
+}
+
+.copy-time-btn:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+
+/* Стили для модуля копирования времени */
+.copy-time-btn {
+    border-color: #6c757d;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-time-btn:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Стили для поля перехода по времени */
+#timeJumpInput {
+    font-family: monospace;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.jump-feedback {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 102;
+    animation: fadeInOut 1.5s ease-in-out;
+}
+
+/* Улучшенные стили для ячеек с действиями */
+.compact-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: center;
+    align-items: center;
+}
+
+.compact-btn {
+    min-width: 28px;
+    height: 28px;
+    padding: 2px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    #timeJumpInput {
+        width: 100px !important;
+        font-size: 0.75rem;
+    }
+    
+    .jump-feedback {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+    
+    .compact-buttons {
+        gap: 2px;
+    }
+    
+    .compact-btn {
+        min-width: 26px;
+        height: 26px;
+        font-size: 0.75rem;
+    }
+}
+/* Стили для поля перехода по времени */
+#timeJumpInput {
+    font-family: monospace;
+    text-align: center;
+}
+
+.jump-feedback {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 102;
+    animation: fadeInOut 1.5s ease-in-out;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    #timeJumpInput {
+        max-width: 100px !important;
+        font-size: 0.8rem;
+    }
+    
+    .jump-feedback {
+        font-size: 16px;
+        padding: 8px 16px;
+    }
+}
+
+.insert-hint:hover {
+  background-color: #0d6efd;
+  height: 8px; /* Увеличиваем для заметности */
+}
 /* Кнопки действий */
 .action-btn {
   width: 32px;
@@ -204,45 +356,230 @@ body {
   border-radius: 8px;
 }
 
-/* Адаптивность */
+/* Стили для позиций субтитров */
+.subtitle-overlay.pos-left {
+    text-align: left;
+    left: 20px;
+    right: auto;
+    width: auto;
+    max-width: 60%;
+    padding: 0 20px;
+}
+
+.subtitle-overlay.pos-right {
+    text-align: right;
+    left: auto;
+    right: 20px;
+    width: auto;
+    max-width: 60%;
+    padding: 0 20px;
+}
+
+.subtitle-overlay.pos-bottom {
+    bottom: 60px;
+    top: auto;
+}
+
+.subtitle-overlay.pos-top {
+    top: 60px;
+    bottom: auto;
+}
+
+.subtitle-overlay.pos-middle {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+}
+
+/* Компактные кнопки в таблице */
+.compact-buttons {
+  display: flex;
+  flex-wrap: nowrap; /* Измените на wrap, если нужно переносить на новую строку */
+  gap: 4px; /* Увеличьте gap для пространства между кнопками */
+  justify-content: center;
+  align-items: center;
+}
+
+.compact-btn {
+  width: auto; /* Уберите фиксированную ширину, чтобы кнопки подстраивались под контент */
+  min-width: 22px; /* Минимальная ширина для квадратных кнопок */
+  height: 22px; /* Увеличьте высоту для менее "приплюснутого" вида */
+  padding: 2px 2px; /* Добавьте padding для внутреннего пространства */
+  font-size: 0.9rem; /* Чуть больше шрифт для читаемости */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px; /* Мягкие углы */
+  transition: all 0.2s ease;
+}
+
+.compact-btn:hover {
+  transform: scale(1.05); /* Лёгкий зум на hover */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Тень для объёма */
+}
+
+/* Для адаптивности на маленьких экранах */
 @media (max-width: 768px) {
-  body {
-    padding: 5px;
+  .compact-buttons {
+    flex-wrap: wrap; /* Перенос на мобильных, чтобы не сжимать */
+    gap: 3px;
   }
-  
-  .container-fluid {
-    border-radius: 10px;
+
+  .compact-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
   }
-  
-  .subtitle-overlay {
-    font-size: 18px;
-    bottom: 50px;
-    padding: 0 15px;
+}
+/* Стили для модальных окон форматирования */
+.modal-sm {
+  max-width: 300px;
+}
+
+.d-grid.gap-2 button {
+  text-align: left;
+}
+
+/* Стили для вставки новых строк */
+.insert-hint {
+  height: 4px;
+  background: transparent;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+
+.insert-hint:hover {
+  background-color: var(--bs-primary);
+}
+
+.insert-hint::before {
+  content: '+';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bs-primary);
+  color: white;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.insert-hint:hover::before {
+  opacity: 1;
+}
+
+/* Стили для панели форматирования */
+.formatting-panel {
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-  
-  .table-wrapper {
-    font-size: 0.8rem;
-    max-height: 400px;
-  }
-  
-  .action-btn {
-    width: 28px;
-    height: 28px;
-  }
-  
-  #videoPlayer {
-    max-height: 300px;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (max-width: 576px) {
+/* Улучшенные стили для модальных окон */
+.modal-sm {
+  max-width: 320px;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+  padding: 1.2rem;
+}
+
+.btn {
+  border-radius: 6px; /* Единые углы для всех кнопок */
+  transition: transform 0.1s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px); /* Лёгкий подъём */
+}
+
+.btn-lg {
+  padding: 0.8rem 1.2rem;
+  font-size: 1.1rem;
+}
+.modal-header .btn-close {
+  filter: invert(1);
+}
+
+/* Новые стили для фиксированной разметки */
+.h-100 {
+  height: 100% !important;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden; /* Фиксируем, чтобы скролл был только внутри table-wrapper */
+}
+
+.border-end {
+  border-right: 1px solid #dee2e6 !important;
+}
+
+/* Кнопки экспорта */
+.btn-lg {
+  padding: 0.75rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  body {
+    overflow: auto;
+  }
+  
+  .container-fluid {
+    height: auto;
+    overflow: hidden;
+  }
+  
+  .row.g-0 {
+    flex-direction: column;
+  }
+  
+  .col-md-4, .col-md-8 {
+   height: calc(100vh - 80px); /* Как в исходном коде */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Предотвращаем скролл колонки */
+  }
+  
   .subtitle-overlay {
     font-size: 16px;
     bottom: 40px;
   }
   
-  #videoPlayer {
-    max-height: 250px;
+  .btn-lg {
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .subtitle-overlay {
+    font-size: 14px;
+    bottom: 30px;
   }
   
   .btn-sm {
@@ -250,11 +587,34 @@ body {
     font-size: 0.75rem;
   }
 }
+@media (max-width: 768px) {
+  .row.g-0 { flex-direction: column; }
+  #playerContainer { max-height: 250px !important; min-height: 200px; }
+  .subtitle-overlay { font-size: 1.2rem; bottom: 50px; padding: 8px 16px; }
+  #subtitleTable { font-size: 0.8rem; }
+  .table-wrapper { overflow-x: auto; } /* Горизонтальная прокрутка таблицы */
+  .compact-btn { width: 28px; height: 28px; font-size: 0.75rem; }
+}
+
+@media (max-width: 576px) {
+  .subtitle-overlay { font-size: 1rem; bottom: 40px; }
+  .btn-lg { font-size: 1rem; padding: 0.6rem 1rem; }
+  .modal-dialog { max-width: 95%; }
+}
 
 /* Анимации */
 @keyframes highlight {
   0% { background-color: #fff3cd; }
   100% { background-color: transparent; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.subtitle-overlay.fade-in {
+  animation: fade-in 0.3s ease forwards; /* Плавное появление */
 }
 
 .highlight {
@@ -265,3 +625,216 @@ body {
 .hidden {
   display: none !important;
 }
+
+  /* Стили для видеоплеера */
+.video-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
+  z-index: 99;
+  display: none;
+  background: rgba(0,0,0,0.5);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.video-loading .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+.seek-feedback {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 102;
+    animation: fadeInOut 1s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+}
+
+.speaker-name {
+    font-weight: bold;
+    color: #ffeb3b;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+
+.subtitle-visible {
+    animation: subtitleAppear 0.3s ease;
+}
+
+@keyframes subtitleAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    #playerContainer {
+        max-height: 300px !important;
+    }
+    
+    .subtitle-overlay {
+        font-size: 18px;
+        bottom: 70px;
+    }
+}
+
+@media (max-width: 576px) {
+    #playerContainer {
+        max-height: 250px !important;
+    }
+    
+    .subtitle-overlay {
+        font-size: 16px;
+        bottom: 60px;
+    }
+}
+
+/* Стили для полноэкранного режима */
+#playerContainer:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh !important;
+    background: #000;
+}
+
+#playerContainer:fullscreen #videoPlayer {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+}
+
+#playerContainer:fullscreen .subtitle-overlay {
+    font-size: 32px;
+    bottom: 120px;
+}
+
+#playerContainer:fullscreen .subtitle-overlay.pos-top {
+    top: 120px;
+}
+
+/* Префиксы для разных браузеров */
+#playerContainer:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh !important;
+    background: #000;
+}
+
+#playerContainer:-webkit-full-screen #videoPlayer {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+}
+
+#playerContainer:-moz-full-screen {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh !important;
+    background: #000;
+}
+
+#playerContainer:-moz-full-screen #videoPlayer {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+}
+
+#playerContainer:-ms-fullscreen {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh !important;
+    background: #000;
+}
+
+#playerContainer:-ms-fullscreen #videoPlayer {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+}
+
+/* Кнопка выхода из полноэкранного режима */
+.fullscreen-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 102;
+    background: rgba(0,0,0,0.7);
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    display: none;
+}
+
+#playerContainer:fullscreen .fullscreen-btn {
+    display: block;
+}
+
+#playerContainer:-webkit-full-screen .fullscreen-btn {
+    display: block;
+}
+
+/* Дополнительные стили для полноэкранного режима */
+.fullscreen-mode {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    background: #000 !important;
+}
+
+.fullscreen-mode #videoPlayer {
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
+}
+
+.fullscreen-mode .subtitle-overlay {
+    font-size: 32px !important;
+    bottom: 120px !important;
+}
+
+.fullscreen-mode .subtitle-overlay.pos-top {
+    top: 120px !important;
+}
+
+.fullscreen-mode .video-controls {
+    padding: 25px !important;
+    font-size: 16px !important;
+}
+
+.fullscreen-mode .video-controls .btn {
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fade-in 0.3s ease; }
