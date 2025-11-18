@@ -1,274 +1,447 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="appTitle">🎬 Редактор субтитров PRO</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/themes.css">
-</head>
-<body data-theme="light">
-
-<!-- Модальные окна -->
-<div class="modal fade" id="searchReplaceModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" data-i18n="searchReplace">Поиск и замена</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <!-- Содержимое будет в search-replace.js -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="timeShiftModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" data-i18n="timeShift">Сдвиг временных меток</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <!-- Содержимое будет в time-tools.js -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="importModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Импорт текста</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <label class="form-label">Введите текст (каждая строка - отдельный субтитр):</label>
-          <textarea id="importTextArea" class="form-control" rows="10" placeholder="Первая фраза&#10;Вторая фраза&#10;Третья фраза"></textarea>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <label class="form-label">Начальное время (секунды):</label>
-            <input type="number" id="startTimeInput" class="form-control" value="0" min="0" step="1">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="appTitle">🎬 Редактор субтитров PRO</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/themes.css" />
+    <link rel="stylesheet" href="modules/formatting.css" />
+  </head>
+  <body data-theme="light">
+    <!-- Модальные окна -->
+    <div class="modal fade" id="searchReplaceModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" data-i18n="searchReplace">
+              Поиск и замена
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
-          <div class="col-md-6">
-            <label class="form-label">Длительность каждого субтитра (секунды):</label>
-            <input type="number" id="durationInput" class="form-control" value="3" min="1" step="0.5">
+          <div class="modal-body">
+            <!-- Содержимое будет в search-replace.js -->
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-        <button type="button" class="btn btn-primary" id="confirmImport">Импортировать</button>
+    </div>
+
+    <div class="modal fade" id="timeShiftModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" data-i18n="timeShift">
+              Сдвиг временных меток
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <!-- Содержимое будет в time-tools.js -->
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<div class="container-fluid px-3 py-3" style="max-width: 1800px;">
-  <!-- Верхняя панель -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0" data-i18n="appTitle">🎬 Редактор субтитров PRO</h4>
-    <div class="d-flex gap-2">
-      <button class="btn btn-sm btn-outline-secondary" id="themeToggle">
-        <i class="bi bi-moon"></i> Тема
-      </button>
-      <select class="form-select form-select-sm" id="languageSelect" style="width: auto;">
-        <option value="ru">🇷🇺 Русский</option>
-        <option value="en">🇺🇸 English</option>
-        <option value="es">🇪🇸 Español</option>
-      </select>
+    <div class="modal fade" id="importModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Импорт текста</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label"
+                >Введите текст (каждая строка - отдельный субтитр):</label
+              >
+              <textarea
+                id="importTextArea"
+                class="form-control"
+                rows="10"
+                placeholder="Первая фраза&#10;Вторая фраза&#10;Третья фраза"
+              ></textarea>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <label class="form-label">Начальное время (секунды):</label>
+                <input
+                  type="number"
+                  id="startTimeInput"
+                  class="form-control"
+                  value="0"
+                  min="0"
+                  step="1"
+                />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label"
+                  >Длительность каждого субтитра (секунды):</label
+                >
+                <input
+                  type="number"
+                  id="durationInput"
+                  class="form-control"
+                  value="3"
+                  min="1"
+                  step="0.5"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Отмена
+            </button>
+            <button type="button" class="btn btn-primary" id="confirmImport">
+              Импортировать
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- Загрузка файлов -->
-  <div class="row mb-4">
-    <div class="col-md-6">
-      <label class="form-label fw-bold" data-i18n="loadVideo">📹 Видеофайл</label>
-      <input type="file" id="videoFile" class="form-control" accept="video/*">
-    </div>
-    <div class="col-md-6">
-      <label class="form-label fw-bold" data-i18n="loadSubtitles">📝 Субтитры</label>
-      <input type="file" id="subtitleFile" class="form-control" accept=".srt,.ass,.vtt,.txt">
-    </div>
-  </div>
-
-  <!-- Видеоплеер с улучшенным контролем -->
-  <div id="playerContainer" class="d-none rounded-3 overflow-hidden shadow-sm bg-black position-relative mb-4">
-    <video id="videoPlayer" controls width="100%"></video>
-    <div id="subtitleOverlay" class="subtitle-overlay"></div>
-    
-    <!-- Улучшенная панель управления -->
-    <div class="video-controls">
-      <div class="d-flex justify-content-between align-items-center">
+    <div class="container-fluid h-100 p-0">
+      <!-- Верхняя панель -->
+      <div
+        class="d-flex justify-content-between align-items-center p-3 border-bottom"
+      >
+        <h4 class="mb-0" data-i18n="appTitle">🎬 Редактор субтитров PRO</h4>
         <div class="d-flex gap-2">
-          <button class="btn btn-sm btn-outline-light" onclick="videoSeek(-5)" title="Назад 5с (←)">
-            <i class="bi bi-skip-backward"></i> 5с
+          <button class="btn btn-sm btn-secondary" id="themeToggle">
+            <i class="bi bi-moon"></i> Тема
           </button>
-          <button class="btn btn-sm btn-outline-light" onclick="videoSeek(5)" title="Вперед 5с (→)">
-            5с <i class="bi bi-skip-forward"></i>
-          </button>
-          <button class="btn btn-sm btn-outline-light" onclick="addBookmark()" title="Добавить закладку (B)">
-            <i class="bi bi-bookmark"></i>
-          </button>
-        </div>
-        
-        <div class="d-flex gap-2 align-items-center text-white">
-          <select class="form-select form-select-sm" id="playbackRate" style="width: auto;">
-            <option value="0.5">0.5x</option>
-            <option value="0.75">0.75x</option>
-            <option value="1" selected>1x</option>
-            <option value="1.25">1.25x</option>
-            <option value="1.5">1.5x</option>
-            <option value="2">2x</option>
+          <select
+            id="languageSelect"
+            style="width: auto"
+          >
+            <option value="ru">🇷🇺 Русский</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="es">🇪🇸 Español</option>
           </select>
-          <span id="currentTime">00:00:00</span> / <span id="duration">00:00:00</span>
         </div>
       </div>
-      
-      <!-- Закладки -->
-      <div id="bookmarksContainer" class="mt-2 d-none">
-        <div class="bookmarks-list"></div>
+
+      <!-- Основной контент -->
+      <div class="row g-0 h-100">
+        <!-- Левая колонка - Видео -->
+        <div
+          class="col-md-4 d-flex flex-column border-end"
+          style="height: calc(100vh - 80px)"
+        >
+          <!-- Загрузка файлов (сворачиваемая панель) -->
+          <div class="p-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">Загрузка файлов</h6>
+              <button
+                class="btn btn-sm btn-secondary"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#fileUploadPanel"
+              >
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse show" id="fileUploadPanel">
+              <div class="mb-2">
+                <label class="form-label small fw-bold">📹 Видеофайл</label>
+                <input
+                  type="file"
+                  id="videoFile"
+                  class="form-control form-control-sm"
+                  accept="video/*"
+                />
+              </div>
+              <div class="mb-2">
+                <label class="form-label small fw-bold">📝 Субтитры</label>
+                <input
+                  type="file"
+                  id="subtitleFile"
+                  class="form-control form-control-sm"
+                  accept=".srt,.ass,.vtt,.txt"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Видеоплеер -->
+          <div class="flex-grow-1 p-3">
+            <div
+              id="playerContainer"
+              class="d-none rounded-3 overflow-hidden shadow-sm bg-black position-relative"
+            >
+              <video id="videoPlayer" controls class="w-100 h-100">
+                Ваш браузер не поддерживает видео тег.
+              </video>
+              <div id="subtitleOverlay" class="subtitle-overlay"></div>
+
+              <!-- Кнопка выхода из полноэкранного режима -->
+              <button
+                class="fullscreen-btn"
+                onclick="window.videoPlayer.toggleFullscreen()"
+                title="Выйти из полноэкранного режима (F или Esc)"
+              >
+                <i class="bi bi-fullscreen-exit"></i>
+              </button>
+
+              <div id="videoLoading" class="video-loading">
+                <div class="spinner-border text-light" role="status">
+                  <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <div class="mt-2 text-light">Загрузка видео...</div>
+              </div>
+
+              <!-- Улучшенная панель управления -->
+              <div class="video-controls">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="d-flex gap-2">
+                    <button
+                      class="btn btn-sm btn-light"
+                      onclick="videoSeek(-5)"
+                      title="Назад 5с (←)"
+                    >
+                      <i class="bi bi-skip-backward"></i> 5с
+                    </button>
+                    <button
+                      class="btn btn-sm btn-light"
+                      onclick="videoSeek(5)"
+                      title="Вперед 5с (→)"
+                    >
+                      5с <i class="bi bi-skip-forward"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-light"
+                      onclick="addBookmark()"
+                      title="Добавить закладку (B)"
+                    >
+                      <i class="bi bi-bookmark"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-light"
+                      onclick="window.videoPlayer.toggleFullscreen()"
+                      title="Полноэкранный режим (F)"
+                    >
+                      <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                  </div>
+
+                  <div class="d-flex gap-2 align-items-center text-white">
+                    <select
+                      class="form-select form-select-sm"
+                      id="playbackRate"
+                      style="width: auto"
+                    >
+                      <option value="0.5">0.5x</option>
+                      <option value="0.75">0.75x</option>
+                      <option value="1" selected>1x</option>
+                      <option value="1.25">1.25x</option>
+                      <option value="1.5">1.5x</option>
+                      <option value="2">2x</option>
+                    </select>
+                    <span id="currentTime">00:00</span> /
+                    <span id="duration">00:00</span>
+                  </div>
+                </div>
+
+                <!-- Закладки -->
+                <div id="bookmarksContainer" class="mt-2 d-none">
+                  <div class="bookmarks-list"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Кнопки экспорта под видео -->
+            <div class="mt-3 d-grid gap-2">
+              <button id="exportSrt" class="btn btn-success btn-lg">
+                <i class="bi bi-download me-2"></i> Экспорт SRT
+              </button>
+              <button id="exportAss" class="btn btn-info btn-lg">
+                <i class="bi bi-download me-2"></i> Экспорт ASS
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Правая колонка - Редактор субтитров -->
+        <div
+          class="col-md-8 d-flex flex-column"
+          style="height: calc(100vh - 80px)"
+        >
+          <!-- Панель инструментов -->
+          <div class="p-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">Редактор субтитров</h6>
+              <button  class="btn btn-sm btn-secondary"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#toolsPanel"
+              >
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="collapse show" id="toolsPanel">
+              <div class="d-flex flex-wrap gap-2">
+                <button id="addSubtitleRow" class="btn btn-primary btn-sm">
+                  <i class="bi bi-plus-lg"></i> Добавить субтитр
+                </button>
+
+                <button
+                  class="btn btn-warning btn-sm"
+                  onclick="showTimeShiftModal()"
+                >
+                  <i class="bi bi-clock"></i> Сдвиг времени
+                </button>
+
+                <button
+                  class="btn btn-info btn-sm"
+                  onclick="showSearchReplaceModal()"
+                >
+                  <i class="bi bi-search"></i> Поиск/Замена
+                </button>
+
+                <button class="btn btn-dark btn-sm" onclick="showHistory()">
+                  <i class="bi bi-clock-history"></i> История
+                </button>
+
+                <button id="importText" class="btn btn-warning btn-sm">
+                  <i class="bi bi-text-paragraph"></i> Импорт текста
+                </button>
+                <!-- ДОБАВЬТЕ ЭТИ КНОПКИ АВТОСОХРАНЕНИЯ -->
+                <button id="restoreAutoSave" class="btn btn-warning btn-sm">
+                  <i class="bi bi-arrow-clockwise"></i> Восстановить
+                </button>
+                <button id="clearAutoSave" class="btn btn-danger btn-sm">
+                  <i class="bi bi-trash"></i> Очистить автосейв
+                </button>
+              </div>
+
+              <!-- Статистика -->
+              <div id="stats" class="alert alert-light d-none mt-2 mb-0">
+                <div class="row text-center">
+                  <div class="col">
+                    <strong id="totalSubtitles">0</strong><br />
+                    <small class="text-muted">Всего субтитров</small>
+                  </div>
+                  <div class="col">
+                    <strong id="totalDuration">0:00:00</strong><br />
+                    <small class="text-muted">Общая длительность</small>
+                  </div>
+                  <div class="col">
+                    <strong id="averageDuration">0:00:00</strong><br />
+                    <small class="text-muted">Средняя длительность</small>
+                  </div>
+                  <div class="col">
+                    <strong id="totalCharacters">0</strong><br />
+                    <small class="text-muted">Символов</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Таблица субтитров -->
+          <div class="flex-grow-1 position-relative">
+            <div class="table-wrapper h-100">
+              <table id="subtitleTable" class="table table-hover mb-0">
+                <thead class="table-light sticky-top">
+                  <tr>
+                    <th
+                      style="width: 4%"
+                      class="text-center"
+                      data-i18n="number"
+                    >
+                      №
+                    </th>
+                    <th style="width: 12%" data-i18n="start">Начало</th>
+                    <th style="width: 12%" data-i18n="end">Конец</th>
+                    <th
+                      style="width: 8%"
+                      class="text-center"
+                      data-i18n="duration"
+                    >
+                      Длит.
+                    </th>
+                    <th style="width: 15%" data-i18n="speaker">Говорящий</th>
+                    <th data-i18n="text">Текст</th>
+                    <th
+                      style="width: 12%"
+                      class="text-center"
+                      data-i18n="actions"
+                    >
+                      Действия
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="subtitleTableBody">
+                  <tr>
+                    <td colspan="7" class="text-center text-muted py-5">
+                      <i
+                        class="bi bi-cloud-arrow-up display-4 d-block mb-2"
+                      ></i>
+                      Загрузите файл субтитров или создайте новый
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Панель инструментов -->
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    <button id="addSubtitleRow" class="btn btn-primary btn-sm" data-i18n="addSubtitle">
-      <i class="bi bi-plus-lg"></i> Добавить субтитр
-    </button>
-    
-    <!-- Группа форматирования -->
-    <div class="btn-group">
-      <button class="btn btn-outline-secondary btn-sm" onclick="formatText('bold')" title="Жирный (Ctrl+B)">
-        <i class="bi bi-type-bold"></i>
-      </button>
-      <button class="btn btn-outline-secondary btn-sm" onclick="formatText('italic')" title="Курсив (Ctrl+I)">
-        <i class="bi bi-type-italic"></i>
-      </button>
-      <button class="btn btn-outline-secondary btn-sm" onclick="formatText('color')" title="Цвет">
-        <i class="bi bi-palette"></i>
-      </button>
-    </div>
-    
-    <!-- Основные инструменты -->
-    <button id="autoNumber" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-sort-numeric-up"></i> Перенумеровать
-    </button>
-    
-    <button id="sortByTime" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-clock"></i> Сортировать по времени
-    </button>
-    
-    <!-- Группа инструментов -->
-    <button class="btn btn-outline-warning btn-sm" onclick="showTimeShiftModal()" data-i18n="timeShift">
-      <i class="bi bi-clock"></i> Сдвиг времени
-    </button>
-    
-    <button class="btn btn-outline-info btn-sm" onclick="showSearchReplaceModal()" data-i18n="searchReplace">
-      <i class="bi bi-search"></i> Поиск/Замена
-    </button>
-    
-    <button class="btn btn-outline-success btn-sm" onclick="autoCorrectSpelling()" data-i18n="spellCheck">
-      <i class="bi bi-spellcheck"></i> Коррекция
-    </button>
-    
-    <button class="btn btn-outline-primary btn-sm" onclick="transliterateText()" data-i18n="transliterate">
-      <i class="bi bi-translate"></i> Транслитерация
-    </button>
-    
-    <!-- История -->
-    <button class="btn btn-outline-dark btn-sm" onclick="showHistory()" data-i18n="history">
-      <i class="bi bi-clock-history"></i> История
-    </button>
-    
-    <!-- Импорт -->
-    <button id="importText" class="btn btn-outline-warning btn-sm">
-      <i class="bi bi-text-paragraph"></i> Импорт текста
-    </button>
-    
-    <!-- Экспорт -->
-    <button id="exportSrt" class="btn btn-success btn-sm" data-i18n="export1">
-      <i class="bi bi-download"></i> SRT
-    </button>
-    
-    <button id="exportAss" class="btn btn-info btn-sm" data-i18n="export2">
-      <i class="bi bi-download"></i> ASS
-    </button>
-  </div>
+    <!-- Скрипты -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- ОСНОВНЫЕ ЗАГРУЗЧИКИ -->
+    <script src="js/subtitle-loader.js"></script>
+    <script src="js/player.js"></script>
+    <!--ядро редактора-->
+    <script src="js/editor.js"></script>
+    <!-- РЕДАКТОР -->
+<script src="js/utilities.js"></script>
+    <script src="js/subtitle-row.js"></script>
+    <!-- МОДУЛИ -->
+    <script src="modules/speaker-manager.js"></script>
+    <script src="modules/time-tools.js"></script>
+    <script src="modules/search-replace.js"></script>
+    <script src="modules/spell-checker.js"></script>
+    <script src="modules/transliteration.js"></script>
+    <script src="modules/theme-manager.js"></script>
+    <script src="modules/video-controls.js"></script>
+    <script src="modules/history-manager.js"></script>
+    <script src="modules/language-manager.js"></script>
+    <script src="modules/copy-time.js"></script>
+    <script src="modules/time-jump.js"></script>
 
-  <!-- Статистика -->
-  <div id="stats" class="alert alert-light d-none mb-3">
-    <div class="row text-center">
-      <div class="col">
-        <strong id="totalSubtitles">0</strong><br>
-        <small class="text-muted">Всего субтитров</small>
-      </div>
-      <div class="col">
-        <strong id="totalDuration">0:00:00</strong><br>
-        <small class="text-muted">Общая длительность</small>
-      </div>
-      <div class="col">
-        <strong id="averageDuration">0:00:00</strong><br>
-        <small class="text-muted">Средняя длительность</small>
-      </div>
-      <div class="col">
-        <strong id="totalCharacters">0</strong><br>
-        <small class="text-muted">Символов</small>
-      </div>
-    </div>
-  </div>
 
-  <!-- Таблица субтитров с колонкой "Говорящий" -->
-  <div class="table-wrapper rounded-3 shadow-sm border" style="max-height: 500px; overflow: auto;">
-    <table id="subtitleTable" class="table table-hover mb-0">
-      <thead class="table-light sticky-top">
-        <tr>
-          <th style="width: 4%" class="text-center" data-i18n="number">№</th>
-          <th style="width: 12%" data-i18n="start">Начало</th>
-          <th style="width: 12%" data-i18n="end">Конец</th>
-          <th style="width: 8%" class="text-center" data-i18n="duration">Длит.</th>
-          <th style="width: 15%" data-i18n="speaker">Говорящий</th>
-          <th data-i18n="text">Текст</th>
-          <th style="width: 12%" class="text-center" data-i18n="actions">Действия</th>
-        </tr>
-      </thead>
-      <tbody id="subtitleTableBody">
-        <tr><td colspan="7" class="text-center text-muted py-5">
-          <i class="bi bi-cloud-arrow-up display-4 d-block mb-2"></i>
-          Загрузите файл субтитров или создайте новый
-        </td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Скрипты -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/subtitle-loader.js"></script>
-<script src="js/editor.js"></script>
-<script src="js/player.js"></script>
-<script src="js/export.js"></script>
-
-<!-- Новые модули -->
-<script src="modules/speaker-manager.js"></script>
-<script src="modules/time-tools.js"></script>
-<script src="modules/text-formatting.js"></script>
-<script src="modules/search-replace.js"></script>
-<script src="modules/spell-checker.js"></script>
-<script src="modules/transliteration.js"></script>
-<script src="modules/theme-manager.js"></script>
-<script src="modules/video-controls.js"></script>
-<script src="modules/history-manager.js"></script>
-<script src="modules/language-manager.js"></script>
-
-</body>
+    <!-- <script src="modules/horizontal-scroll-actions.js"></script> -->
+    <script src="modules/hybrid-actions.js"></script>
+    <!-- <script src="modules/hybrid-actions-v2.js"></script> -->
+    <!-- <script src="modules/compact-actions.js"></script> -->
+    <!-- ЭКСПОРТ -->
+    <script src="js/export.js"></script>
+  </body>
 </html>
